@@ -13,7 +13,7 @@ const Cart = () => {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const exchangeRate = 0.012; // Example: 1 INR = 0.012 USD (update with real-time rate)
+  const exchangeRate = 0.012;
 
   const calculateTotalINR = () => {
     return cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
@@ -23,51 +23,49 @@ const Cart = () => {
     return parseFloat((calculateTotalINR() * exchangeRate).toFixed(2));
   };
 
-  const handlePayPalCheckout = async () => {
-    if (cartItems.length === 0) {
-      setError('Your cart is empty.');
-      return;
-    }
+ const handlePayPalCheckout = async () => {
+  if (cartItems.length === 0) {
+    setError('Your cart is empty.');
+    return;
+  }
 
-    setLoading(true);
-    setError(null);
+  setLoading(true);
+  setError(null);
 
-    try {
-      const tokenResponse = await axios.post('http://localhost:8011/api/paypal/token');
-      const accessToken = tokenResponse.data.access_token;
+  try {
+    const tokenResponse = await axios.post('https://api.neightivglobal.com/api/paypal/token');
+    const accessToken = tokenResponse.data.access_token;
 
-      const orderResponse = await axios.post(
-        'http://localhost:8011/api/paypal/create-order',
-        {
-          amount: calculateTotalUSD(),
-          currency_code: 'USD',
-          cartItems: cartItems.map((item) => ({
-            name: item.name,
-            price: parseFloat((item.price * exchangeRate).toFixed(2)), // Convert INR to USD
-            quantity: item.quantity,
-            sku: item.id, // Optional: product ID as SKU
-          })),
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      );
-
-      const approvalLink = orderResponse.data.links.find((link) => link.rel === 'approve');
-      if (approvalLink) {
-        window.location.href = approvalLink.href;
-      } else {
-        throw new Error('No approval link found in PayPal response.');
+    const orderResponse = await axios.post(
+      'https://api.neightivglobal.com/api/paypal/create-order',
+      {
+        amount: calculateTotalUSD(),
+        currency_code: 'USD',
+        cartItems: cartItems.map((item) => ({
+          name: item.name,
+          price: parseFloat((item.price * exchangeRate).toFixed(2)),
+          quantity: item.quantity,
+          sku: item.id,
+        })),
+      },
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
       }
-    } catch (err) {
-      console.error('PayPal checkout error:', err);
-      setError('Failed to initiate PayPal payment. Please try again.');
-    } finally {
-      setLoading(false);
+    );
+
+    const approvalLink = orderResponse.data.links.find((link) => link.rel === 'approve');
+    if (approvalLink) {
+      window.location.href = approvalLink.href;
+    } else {
+      throw new Error('No approval link found in PayPal response.');
     }
-  };
+  } catch (err) {
+    console.error('PayPal checkout error:', err.response?.data || err.message);
+    setError('Failed to initiate PayPal payment. Please try again.');
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <>
@@ -152,7 +150,7 @@ const Cart = () => {
                               {item.name}
                             </p>
                             <p style={{ color: '#000', fontSize: '14px', margin: 0 }}>
-                              Rs. {item.price.toLocaleString('en-IN')}
+                              Rs. {item.price.toLocaleString('en-IN')} (~${(item.price * exchangeRate).toFixed(2)})
                             </p>
                           </div>
                         </div>
@@ -202,69 +200,61 @@ const Cart = () => {
                       </Col>
                       <Col md={4} style={{ textAlign: 'right' }}>
                         <p style={{ fontWeight: '500', color: '#000', fontSize: '16px', margin: 0 }}>
-                          Rs. {(item.price * item.quantity).toLocaleString('en-IN')}
+                          Rs. {(item.price * item.quantity).toLocaleString('en-IN')} (~${((item.price * item.quantity) * exchangeRate).toFixed(2)})
                         </p>
                       </Col>
                     </Row>
                   ))}
+
+                  <div style={{ textAlign: 'right', marginBottom: '30px' }}>
+                    <p style={{ fontWeight: '500', color: '#000', fontSize: '16px' }}>
+                      Estimated total Rs. {calculateTotalINR().toLocaleString('en-IN')} (~${calculateTotalUSD()})
+                    </p>
+                    <p style={{ color: '#000', fontSize: '12px', marginBottom: '20px' }}>
+                      Taxes, discounts, and shipping calculated at checkout.
+                    </p>
+                    <div style={{ display: 'inline-block', width: '200px' }}>
+                      <Button
+                        onClick={() => navigate('/checkout', { state: { cartItems } })}
+                        style={{
+                          backgroundColor: '#000',
+                          border: 'none',
+                          borderRadius: '0',
+                          padding: '10px 0',
+                          fontWeight: '500',
+                          width: '100%',
+                          marginBottom: '10px',
+                        }}
+                      >
+                        Check out
+                      </Button>
+                      <Button
+                        onClick={handlePayPalCheckout}
+                        disabled={loading}
+                        style={{
+                          backgroundColor: '#ffcc00',
+                          color: '#000',
+                          border: 'none',
+                          borderRadius: '0',
+                          padding: '10px 0',
+                          fontWeight: '500',
+                          width: '100%',
+                        }}
+                      >
+                        {loading ? 'Processing...' : 'Pay with PayPal'}
+                      </Button>
+                      {error && (
+                        <p style={{ color: '#ff0000', fontSize: '12px', marginTop: '10px' }}>
+                          {error}
+                        </p>
+                      )}
+                    </div>
+                  </div>
                 </>
               )}
             </Col>
           </Row>
         </Container>
-
-        {cartItems.length > 0 && (
-          <Container fluid>
-            <Row>
-              <Col md={12}>
-                <div style={{ textAlign: 'right', marginBottom: '30px' }}>
-                  <p style={{ fontWeight: '500', color: '#000', fontSize: '16px' }}>
-                    Estimated total Rs. {calculateTotalINR().toLocaleString('en-IN')} (~${calculateTotalUSD()})
-                  </p>
-                  <p style={{ color: '#000', fontSize: '12px', marginBottom: '20px' }}>
-                    Taxes, discounts, and shipping calculated at checkout.
-                  </p>
-                  <div style={{ display: 'inline-block', width: '200px' }}>
-                    <Button
-                      onClick={() => navigate('/checkout')}
-                      style={{
-                        backgroundColor: '#000',
-                        border: 'none',
-                        borderRadius: '0',
-                        padding: '10px 0',
-                        fontWeight: '500',
-                        width: '100%',
-                        marginBottom: '10px',
-                      }}
-                    >
-                      Check out
-                    </Button>
-                    <Button
-                      onClick={handlePayPalCheckout}
-                      disabled={loading}
-                      style={{
-                        backgroundColor: '#ffcc00',
-                        color: '#000',
-                        border: 'none',
-                        borderRadius: '0',
-                        padding: '10px 0',
-                        fontWeight: '500',
-                        width: '100%',
-                      }}
-                    >
-                      {loading ? 'Processing...' : 'Pay with PayPal'}
-                    </Button>
-                    {error && (
-                      <p style={{ color: '#ff0000', fontSize: '12px', marginTop: '10px' }}>
-                        {error}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </Col>
-            </Row>
-          </Container>
-        )}
       </div>
       <Footer />
     </>

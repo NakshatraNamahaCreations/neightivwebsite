@@ -21,6 +21,9 @@ import PrivacyPolicy from './Pages/PrivacyPolicy';
 import PayPalSuccess from './Pages/PayPalSuccess';
 import PayPalCancel from './Pages/PayPalCancel';
 import TermsAndConditions from './Pages/TermsandCondition';
+import Checkout from './Pages/Checkout';
+import OrderConfirmation from './Pages/OrderConfirmation';
+import DHLOrder from './Pages/DHLOrder';
 
 
 
@@ -55,6 +58,10 @@ useEffect(() => {
         <Route path="/paypal-cancel" element={<PayPalCancel />} />
 
 <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+<Route path="/checkout" element={<Checkout />} />
+  <Route path="/order-confirmation" element={<OrderConfirmation />} />
+  <Route path="/dhlorder" element={<DHLOrder />} />
+
       </Routes>
     </Router>
 </CartProvider>

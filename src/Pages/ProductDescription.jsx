@@ -28,11 +28,11 @@ const ProductDescription = () => {
     const fetchProduct = async () => {
       try {
         // Fetch the specific product by ID
-        const productResponse = await axios.get(`http://localhost:8011/api/products/${id}`);
+        const productResponse = await axios.get(`https://api.neightivglobal.com/api/products/${id}`);
         setProduct(productResponse.data);
 
         // Fetch all products for related products
-        const allProductsResponse = await axios.get('http://localhost:8011/api/products');
+        const allProductsResponse = await axios.get('https://api.neightivglobal.com/api/products');
         const filteredRelated = allProductsResponse.data
           .filter((p) => p._id !== id)
           .slice(0, 4);
@@ -105,7 +105,7 @@ const ProductDescription = () => {
 
   // Prepare product images for display
   const productImages = product.images.map((image, index) => ({
-    src: `http://localhost:8011${image}`,
+    src: `https://api.neightivglobal.com${image}`,
     alt: `${product.name} Image ${index + 1}`,
   }));
 
@@ -197,6 +197,7 @@ const ProductDescription = () => {
                   Add to Cart
                 </Button>
                 <Button
+                  onClick={handleAddToCart}
                   style={{
                     backgroundColor: '#000',
                     border: 'none',
@@ -321,8 +322,8 @@ const ProductDescription = () => {
                   <Image
                     src={
                       hoveredProduct === relatedProduct._id && relatedProduct.images[1]
-                        ? `http://localhost:8011${relatedProduct.images[1]}`
-                        : `http://localhost:8011${relatedProduct.images[0]}`
+                        ? `https://api.neightivglobal.com${relatedProduct.images[1]}`
+                        : `https://api.neightivglobal.com${relatedProduct.images[0]}`
                     }
                     alt={relatedProduct.name}
                     fluid

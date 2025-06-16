@@ -16,7 +16,7 @@ const Shop = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await axios.get('http://localhost:8011/api/products');
+        const response = await axios.get('https://api.neightivglobal.com/api/products');
         setProducts(response.data);
         setLoading(false);
       } catch (err) {
@@ -126,14 +126,14 @@ const Shop = () => {
                 >
                   <div className="product-card">
                     <Image
-                      src={`http://localhost:8011${product.images[0]}`}
+                      src={`https://api.neightivglobal.com${product.images[0]}`}
                       alt={product.name}
                       fluid
                       className="product-image base-image"
                     />
                     {product.images[1] && (
                       <Image
-                        src={`http://localhost:8011${product.images[1]}`}
+                        src={`https://api.neightivglobal.com${product.images[1]}`}
                         alt={`${product.name} Hover`}
                         fluid
                         className="product-image hover-image"
