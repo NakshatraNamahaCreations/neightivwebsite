@@ -24,8 +24,51 @@ const Checkout = () => {
   const [shippingOptions, setShippingOptions] = useState([]);
   const [selectedCourier, setSelectedCourier] = useState(null);
 
-  const calculateTotalINR = () => {
-    return cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
+  const GST_RATE = 0.12;
+  const CGST_RATE = GST_RATE / 2; // 6%
+  const SGST_RATE = GST_RATE / 2; // 6%
+
+  // Terms and Conditions
+  const termsAndConditions = `
+    1. All sales are final. Returns are accepted within 7 days of delivery, subject to our return policy.
+    2. Products must be returned in original condition with packaging.
+    3. Shipping costs are non-refundable unless the product is defective.
+    4. GST is calculated at 12% (6% CGST + 6% SGST) as per Indian tax regulations.
+    5. Delivery timelines are estimates and may vary based on courier availability.
+  `;
+
+  // Normalize cart item to ensure all required fields exist
+  const normalizeItem = (item) => {
+    if (item.basePrice && item.cgst && item.sgst && item.totalPrice) {
+      return item;
+    }
+    const basePrice = item.price || 0;
+    const cgst = basePrice * CGST_RATE;
+    const sgst = basePrice * SGST_RATE;
+    const totalPrice = basePrice + cgst + sgst;
+    return {
+      ...item,
+      basePrice,
+      cgst,
+      sgst,
+      totalPrice,
+    };
+  };
+
+  // Calculate totals for INR
+  const calculateTotalsINR = () => {
+    return cartItems.reduce(
+      (totals, item) => {
+        const normalizedItem = normalizeItem(item);
+        return {
+          baseTotal: totals.baseTotal + normalizedItem.basePrice * item.quantity,
+          cgstTotal: totals.cgstTotal + normalizedItem.cgst * item.quantity,
+          sgstTotal: totals.sgstTotal + normalizedItem.sgst * item.quantity,
+          grandTotal: totals.grandTotal + normalizedItem.totalPrice * item.quantity,
+        };
+      },
+      { baseTotal: 0, cgstTotal: 0, sgstTotal: 0, grandTotal: 0 }
+    );
   };
 
   const handleShippingChange = (e) => {
@@ -49,8 +92,6 @@ const Checkout = () => {
           weight: 0.5,
         },
       });
-
-      console.log('Serviceability Response:', response.data);
 
       const couriers = response.data?.data?.available_courier_companies || [];
       const filteredCouriers = shippingDetails.country === 'India'
@@ -82,7 +123,6 @@ const Checkout = () => {
       return;
     }
 
-    // Validate phone and email
     const phoneRegex = /^\+?\d{10,12}$/;
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!phoneRegex.test(shippingDetails.phone)) {
@@ -96,6 +136,8 @@ const Checkout = () => {
 
     setLoading(true);
     setError(null);
+
+    const { baseTotal, cgstTotal, sgstTotal, grandTotal } = calculateTotalsINR();
 
     const payload = {
       paypalOrderId: `TEMP_${Date.now()}`,
@@ -111,26 +153,35 @@ const Checkout = () => {
       billing_email: shippingDetails.email,
       billing_phone: shippingDetails.phone.replace('+', ''),
       shipping_is_billing: true,
-      order_items: cartItems.map((item) => ({
-        name: item.name,
-        sku: item.id || `SKU_${item.name.replace(/\s+/g, '_')}`,
-        quantity: item.quantity,
-        price: item.price,
-      })),
+      order_items: cartItems.map((item) => {
+        const normalizedItem = normalizeItem(item);
+        return {
+          name: normalizedItem.name,
+          sku: normalizedItem.id || `SKU_${normalizedItem.name.replace(/\s+/g, '_')}`,
+          quantity: normalizedItem.quantity,
+          price: normalizedItem.totalPrice,
+          cgst: normalizedItem.cgst,
+          sgst: normalizedItem.sgst,
+          base_price: normalizedItem.basePrice,
+        };
+      }),
       payment_method: 'Prepaid',
-      sub_total: calculateTotalINR() + (selectedCourier?.rate || 0),
+      sub_total: grandTotal + (selectedCourier?.rate || 0),
+      shipping_cost: selectedCourier?.rate || 0,
+      tax_details: {
+        base_total: baseTotal,
+        cgst_total: cgstTotal,
+        sgst_total: sgstTotal,
+      },
+      terms_and_conditions: termsAndConditions,
       length: 10,
       breadth: 10,
       height: 1,
       weight: 0.5,
     };
 
-    console.log('Shiprocket Order Payload:', JSON.stringify(payload, null, 2));
-
     try {
       const response = await axios.post('https://api.neightivglobal.com/api/shiprocket/orders/create', payload);
-      console.log('Shiprocket Order Created:', response.data);
-      setError(null);
       navigate('/order-confirmation', {
         state: {
           shiprocketOrderId: response.data.shiprocketOrderId,
@@ -301,20 +352,30 @@ const Checkout = () => {
                     <h3 style={{ fontFamily: 'Lora, serif', color: '#000', fontWeight: '500', fontSize: '24px', marginBottom: '20px' }}>
                       Order Summary
                     </h3>
-                    {cartItems.map((item) => (
-                      <Row key={item.id} style={{ marginBottom: '10px' }}>
-                        <Col>
-                          <p style={{ color: '#000', fontSize: '16px', margin: 0 }}>
-                            {item.name} x {item.quantity}
-                          </p>
-                        </Col>
-                        <Col style={{ textAlign: 'right' }}>
-                          <p style={{ color: '#000', fontSize: '16px', margin: 0 }}>
-                            Rs. {(item.price * item.quantity).toLocaleString('en-IN')}
-                          </p>
-                        </Col>
-                      </Row>
-                    ))}
+                    {cartItems.map((item) => {
+                      const normalizedItem = normalizeItem(item);
+                      return (
+                        <Row key={normalizedItem.id} style={{ marginBottom: '10px' }}>
+                          <Col>
+                            <p style={{ color: '#000', fontSize: '16px', margin: 0 }}>
+                              {normalizedItem.name} x {normalizedItem.quantity}
+                            </p>
+                            <p>Unit Price (Excl. Tax): Rs. {normalizedItem.basePrice}</p>
+{/* <p>Taxable Value: Rs. {normalizedItem.taxableValue}</p>
+<p>CGST (6%): Rs. {normalizedItem.cgst}</p>
+<p>SGST (6%): Rs. {normalizedItem.sgst}</p>
+<p>Total Price (Incl. Tax): Rs. {normalizedItem.totalPrice}</p> */}
+
+
+                          </Col>
+                          <Col style={{ textAlign: 'right' }}>
+                            <p style={{ color: '#000', fontSize: '16px', margin: 0 }}>
+                              Rs. {(normalizedItem.totalPrice * normalizedItem.quantity).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </p>
+                          </Col>
+                        </Row>
+                      );
+                    })}
                     {selectedCourier && (
                       <Row style={{ marginBottom: '10px' }}>
                         <Col>
@@ -324,7 +385,7 @@ const Checkout = () => {
                         </Col>
                         <Col style={{ textAlign: 'right' }}>
                           <p style={{ color: '#000', fontSize: '16px', margin: 0 }}>
-                            Rs. {selectedCourier.rate}
+                            Rs. {selectedCourier.rate.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </p>
                         </Col>
                       </Row>
@@ -332,15 +393,23 @@ const Checkout = () => {
                     <Row style={{ borderTop: '1px solid #000', paddingTop: '10px', marginTop: '20px' }}>
                       <Col>
                         <p style={{ fontWeight: '500', color: '#000', fontSize: '16px', margin: 0 }}>
-                          Total
+                          Total (incl. taxes and shipping)
                         </p>
                       </Col>
                       <Col style={{ textAlign: 'right' }}>
                         <p style={{ fontWeight: '500', color: '#000', fontSize: '16px', margin: 0 }}>
-                          Rs. {(calculateTotalINR() + (selectedCourier?.rate || 0)).toLocaleString('en-IN')}
+                          Rs. {(calculateTotalsINR().grandTotal + (selectedCourier?.rate || 0)).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </p>
                       </Col>
                     </Row>
+                    <div style={{ marginTop: '20px' }}>
+                      <h4 style={{ fontFamily: 'Lora, serif', color: '#000', fontWeight: '500', fontSize: '20px' }}>
+                        Terms and Conditions
+                      </h4>
+                      <p style={{ color: '#000', fontSize: '14px', whiteSpace: 'pre-wrap' }}>
+                        {termsAndConditions}
+                      </p>
+                    </div>
                     <Button
                       onClick={createOrder}
                       disabled={loading}

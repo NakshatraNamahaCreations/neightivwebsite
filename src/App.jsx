@@ -24,6 +24,8 @@ import TermsAndConditions from './Pages/TermsandCondition';
 import Checkout from './Pages/Checkout';
 import OrderConfirmation from './Pages/OrderConfirmation';
 import DHLOrder from './Pages/DHLOrder';
+import Register from './Pages/Registr';
+import Login from './Pages/Login';
 
 
 
@@ -59,6 +61,8 @@ useEffect(() => {
 
 <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
 <Route path="/checkout" element={<Checkout />} />
+<Route path="/register" element={<Register />} />
+        <Route path="/login" element={<Login />} />
   <Route path="/order-confirmation" element={<OrderConfirmation />} />
   <Route path="/dhlorder" element={<DHLOrder />} />
 

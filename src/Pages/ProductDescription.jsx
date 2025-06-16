@@ -65,7 +65,7 @@ const ProductDescription = () => {
           id: product._id,
           name: product.name,
           price: product.amount,
-          image: product.images[0], // Use first image for cart
+         image: `https://api.neightivglobal.com${product.images[0]}`,
         },
         quantity
       );
