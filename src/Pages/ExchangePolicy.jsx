@@ -157,6 +157,9 @@ const ExchangePolicy = () => {
               <li style={{ marginBottom: '10px' }}>
                 We recommend using a trackable courier service as Neightiv is not liable for lost return shipments.
               </li>
+              <li style={{ marginBottom: '10px' }}>
+               The Delivery after Processing the exchange will be made in 10-12 working days.
+              </li>
             </ul>
 
             <h2
@@ -191,6 +194,10 @@ const ExchangePolicy = () => {
                 Neightiv reserves the right to refuse returns from customers with excessive return history or suspected
                 abuse of our return policy.
               </li>
+
+              <li style={{ marginBottom: '10px' }}>
+                The instead for exchange, an option for store credit can be opted. The store credit is valid for 12 months
+                </li>
             </ul>
           </Col>
         </Row>

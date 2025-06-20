@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Button, Form } from 'react-bootstrap';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Footer from '../Components/Footer';
@@ -9,6 +9,7 @@ const Checkout = () => {
   const { state } = useLocation();
   const { cartItems } = state || { cartItems: [] };
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [shippingDetails, setShippingDetails] = useState({
@@ -24,50 +25,34 @@ const Checkout = () => {
   const [shippingOptions, setShippingOptions] = useState([]);
   const [selectedCourier, setSelectedCourier] = useState(null);
 
-  const GST_RATE = 0.12;
-  const CGST_RATE = GST_RATE / 2; // 6%
-  const SGST_RATE = GST_RATE / 2; // 6%
-
   // Terms and Conditions
   const termsAndConditions = `
     1. All sales are final. Returns are accepted within 7 days of delivery, subject to our return policy.
     2. Products must be returned in original condition with packaging.
     3. Shipping costs are non-refundable unless the product is defective.
-    4. GST is calculated at 12% (6% CGST + 6% SGST) as per Indian tax regulations.
-    5. Delivery timelines are estimates and may vary based on courier availability.
+    4. Delivery timelines are estimates and may vary based on courier availability.
   `;
 
-  // Normalize cart item to ensure all required fields exist
   const normalizeItem = (item) => {
-    if (item.basePrice && item.cgst && item.sgst && item.totalPrice) {
-      return item;
-    }
     const basePrice = item.price || 0;
-    const cgst = basePrice * CGST_RATE;
-    const sgst = basePrice * SGST_RATE;
-    const totalPrice = basePrice + cgst + sgst;
+    const totalPrice = basePrice;
     return {
       ...item,
       basePrice,
-      cgst,
-      sgst,
       totalPrice,
     };
   };
 
-  // Calculate totals for INR
   const calculateTotalsINR = () => {
     return cartItems.reduce(
       (totals, item) => {
         const normalizedItem = normalizeItem(item);
         return {
           baseTotal: totals.baseTotal + normalizedItem.basePrice * item.quantity,
-          cgstTotal: totals.cgstTotal + normalizedItem.cgst * item.quantity,
-          sgstTotal: totals.sgstTotal + normalizedItem.sgst * item.quantity,
           grandTotal: totals.grandTotal + normalizedItem.totalPrice * item.quantity,
         };
       },
-      { baseTotal: 0, cgstTotal: 0, sgstTotal: 0, grandTotal: 0 }
+      { baseTotal: 0, grandTotal: 0 }
     );
   };
 
@@ -109,7 +94,7 @@ const Checkout = () => {
     }
   };
 
-  const createOrder = async () => {
+  const createOrder = async (transactionId) => {
     if (cartItems.length === 0) {
       setError('Your cart is empty.');
       return;
@@ -137,10 +122,10 @@ const Checkout = () => {
     setLoading(true);
     setError(null);
 
-    const { baseTotal, cgstTotal, sgstTotal, grandTotal } = calculateTotalsINR();
+    const { grandTotal } = calculateTotalsINR();
 
     const payload = {
-      paypalOrderId: `TEMP_${Date.now()}`,
+      paypalOrderId: transactionId || `ORDER_${Date.now()}`,
       order_date: new Date().toISOString().split('T')[0],
       pickup_location: 'Primary',
       billing_customer_name: shippingDetails.name.split(' ')[0] || shippingDetails.name,
@@ -157,22 +142,15 @@ const Checkout = () => {
         const normalizedItem = normalizeItem(item);
         return {
           name: normalizedItem.name,
-          sku: normalizedItem.id || `SKU_${normalizedItem.name.replace(/\s+/g, '_')}`,
+          sku: normalizedItem.sku,
           quantity: normalizedItem.quantity,
           price: normalizedItem.totalPrice,
-          cgst: normalizedItem.cgst,
-          sgst: normalizedItem.sgst,
           base_price: normalizedItem.basePrice,
         };
       }),
       payment_method: 'Prepaid',
       sub_total: grandTotal + (selectedCourier?.rate || 0),
       shipping_cost: selectedCourier?.rate || 0,
-      tax_details: {
-        base_total: baseTotal,
-        cgst_total: cgstTotal,
-        sgst_total: sgstTotal,
-      },
       terms_and_conditions: termsAndConditions,
       length: 10,
       breadth: 10,
@@ -195,6 +173,98 @@ const Checkout = () => {
       setLoading(false);
     }
   };
+
+  const handlePhonePeCheckout = async () => {
+    if (cartItems.length === 0) {
+      setError('Your cart is empty.');
+      return;
+    }
+
+    if (!selectedCourier || !selectedCourier.rate || selectedCourier.rate <= 0) {
+      setError('Please select a valid shipping option with a rate.');
+      return;
+    }
+
+    if (!shippingDetails.name || !shippingDetails.address || !shippingDetails.city || !shippingDetails.state || !shippingDetails.country || !shippingDetails.pincode || !shippingDetails.phone || !shippingDetails.email) {
+      setError('Please complete all shipping details.');
+      return;
+    }
+
+    const selectedCountry = shippingDetails.country;
+    if (selectedCountry !== 'India') {
+      setError('PhonePe is only available for payments in India.');
+      return;
+    }
+
+    const { grandTotal } = calculateTotalsINR();
+    // const amountToCharge = parseFloat((grandTotal + selectedCourier.rate).toFixed(2));
+    const amountToCharge = 1;
+
+    const payload = {
+      amount: amountToCharge*100,// amountToCharge * 100,
+      currency: 'INR',
+      customerDetails: {
+        name: shippingDetails.name,
+        phone: shippingDetails.phone,
+        email: shippingDetails.email,
+      },
+      paypalOrderId: `ORDER_${Date.now()}`,
+      cartItems: cartItems.map(item => ({
+        id: item.id || item._id || 'N/A',
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+      })),
+      shippingDetails,
+      selectedCourier,
+      termsAndConditions,
+      redirectUrl: `${window.location.origin}/checkout?callback=true`, // Redirect back to this page with callback flag
+    };
+
+    console.log('PhonePe checkout payload:', JSON.stringify(payload, null, 2));
+    setLoading(true);
+    setError(null);
+
+    try {
+      const orderResponse = await axios.post('https://api.neightivglobal.com/api/phonepe/initiate-payment', payload);
+      console.log('PhonePe response:', orderResponse.data);
+
+      const { redirectUrl } = orderResponse.data;
+      if (redirectUrl) {
+        window.location.href = redirectUrl;
+      } else {
+        throw new Error('Payment URL not received.');
+      }
+    } catch (err) {
+      console.error('PhonePe checkout error:', err.response?.data || err.message);
+      setError(`Failed to initiate PhonePe payment: ${err.response?.data?.error || 'Please try again.'}`);
+      setLoading(false);
+    }
+  };
+
+  // Handle PhonePe callback
+  useEffect(() => {
+    const callback = searchParams.get('callback');
+    const transactionId = searchParams.get('transactionId'); // Assuming transactionId is passed back
+    if (callback === 'true' && transactionId) {
+      // Verify payment status
+      axios
+        .get(`https://api.neightivglobal.com/api/phonepe/verify-payment?transactionId=${transactionId}`)
+        .then((response) => {
+          if (response.data.success && response.data.paymentStatus === 'completed') {
+            createOrder(transactionId); // Call createOrder with transactionId
+          } else {
+            setError('Payment verification failed. Please try again.');
+            setLoading(false);
+          }
+        })
+        .catch((err) => {
+          console.error('Payment verification error:', err.response?.data || err.message);
+          setError('Failed to verify payment. Please try again.');
+          setLoading(false);
+        });
+    }
+  }, [searchParams]);
 
   return (
     <>
@@ -360,13 +430,6 @@ const Checkout = () => {
                             <p style={{ color: '#000', fontSize: '16px', margin: 0 }}>
                               {normalizedItem.name} x {normalizedItem.quantity}
                             </p>
-                            <p>Unit Price (Excl. Tax): Rs. {normalizedItem.basePrice}</p>
-{/* <p>Taxable Value: Rs. {normalizedItem.taxableValue}</p>
-<p>CGST (6%): Rs. {normalizedItem.cgst}</p>
-<p>SGST (6%): Rs. {normalizedItem.sgst}</p>
-<p>Total Price (Incl. Tax): Rs. {normalizedItem.totalPrice}</p> */}
-
-
                           </Col>
                           <Col style={{ textAlign: 'right' }}>
                             <p style={{ color: '#000', fontSize: '16px', margin: 0 }}>
@@ -410,22 +473,46 @@ const Checkout = () => {
                         {termsAndConditions}
                       </p>
                     </div>
-                    <Button
-                      onClick={createOrder}
-                      disabled={loading}
-                      style={{
-                        backgroundColor: '#000',
-                        color: '#fff',
-                        border: 'none',
-                        borderRadius: '0',
-                        padding: '10px 0',
-                        fontWeight: '500',
-                        width: '100%',
-                        marginTop: '20px',
-                      }}
-                    >
-                      {loading ? 'Processing...' : 'Create Order'}
-                    </Button>
+
+                    {/* Payment Buttons */}
+                    {shippingDetails.country === 'India' && (
+                      <>
+                        {/* <Button
+                          // onClick={handlePayPalCheckout}
+                          disabled={loading}
+                          style={{
+                            backgroundColor: '#ffcc00',
+                            color: '#000',
+                            border: 'none',
+                            borderRadius: '0',
+                            padding: '10px 0',
+                            fontWeight: '500',
+                            width: '100%',
+                            marginTop: '10px',
+                          }}
+                        >
+                          Pay with PayPal
+                        </Button> */}
+
+                        <Button
+                          onClick={handlePhonePeCheckout}
+                          disabled={loading}
+                          style={{
+                            backgroundColor: '#3bb143',
+                            color: '#fff',
+                            border: 'none',
+                            borderRadius: '0',
+                            padding: '10px 0',
+                            fontWeight: '500',
+                            width: '100%',
+                            marginTop: '10px',
+                          }}
+                        >
+                          Pay with PhonePe
+                        </Button>
+                      </>
+                    )}
+
                     {error && (
                       <p style={{ color: '#ff0000', fontSize: '12px', marginTop: '10px' }}>
                         {error}

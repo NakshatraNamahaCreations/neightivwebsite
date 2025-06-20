@@ -6,6 +6,7 @@ import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Footer from '../Components/Footer';
 import { FaTrash } from 'react-icons/fa';
+import { useCurrency } from './CurrencyContext';
 
 const Cart = () => {
   const { cartItems, updateQuantity, removeFromCart } = useCart();
@@ -13,98 +14,94 @@ const Cart = () => {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const exchangeRate = 0.012;
-  const GST_RATE = 0.12;
-  const CGST_RATE = GST_RATE / 2; // 6%
-  const SGST_RATE = GST_RATE / 2; // 6%
+  const { currency, convertPrice } = useCurrency();
 
-  // Normalize cart item to ensure all required fields exist
-  const normalizeItem = (item) => {
-    if (item.basePrice && item.cgst && item.sgst && item.totalPrice) {
-      return item; // Item already has GST fields
+
+   const normalizeItem = (item) => {
+    if (item.basePrice && item.totalPrice) {
+      return item; 
     }
-    // Fallback for legacy items with only 'price'
     const basePrice = item.price || 0;
-    const cgst = basePrice * CGST_RATE;
-    const sgst = basePrice * SGST_RATE;
-    const totalPrice = basePrice + cgst + sgst;
+    const totalPrice = basePrice; 
     return {
       ...item,
       basePrice,
-      cgst,
-      sgst,
       totalPrice,
     };
   };
 
-  // Calculate totals for INR (base price, CGST, SGST, and total with GST)
-  const calculateTotalsINR = () => {
+
+   const calculateTotals = () => {
     return cartItems.reduce(
       (totals, item) => {
         const normalizedItem = normalizeItem(item);
         return {
           baseTotal: totals.baseTotal + normalizedItem.basePrice * item.quantity,
-          cgstTotal: totals.cgstTotal + normalizedItem.cgst * item.quantity,
-          sgstTotal: totals.sgstTotal + normalizedItem.sgst * item.quantity,
           grandTotal: totals.grandTotal + normalizedItem.totalPrice * item.quantity,
         };
       },
-      { baseTotal: 0, cgstTotal: 0, sgstTotal: 0, grandTotal: 0 }
+      { baseTotal: 0, grandTotal: 0 }
     );
   };
 
-  // Calculate totals in USD for PayPal
-  const calculateTotalUSD = () => {
-    const { grandTotal } = calculateTotalsINR();
-    return parseFloat((grandTotal * exchangeRate).toFixed(2));
-  };
 
-  const handlePayPalCheckout = async () => {
-    if (cartItems.length === 0) {
-      setError('Your cart is empty.');
-      return;
-    }
+ // In Cart.js, update handlePayPalCheckout
+const handlePayPalCheckout = async () => {
+  if (cartItems.length === 0) {
+    setError('Your cart is empty.');
+    return;
+  }
 
-    setLoading(true);
-    setError(null);
+  // Example: Assume country is selected elsewhere or hardcoded for testing
+  const selectedCountry = 'US'; // Replace with actual country selection logic (e.g., from a dropdown)
 
-    try {
-      const tokenResponse = await axios.post('https://api.neightivglobal.com/api/paypal/token');
-      const accessToken = tokenResponse.data.access_token;
+  if (selectedCountry !== 'IN') {
+    navigate('/international-checkout', {
+      state: { cartItems: cartItems.map(normalizeItem), countryCode: selectedCountry },
+    });
+    return;
+  }
 
-      const orderResponse = await axios.post(
-        'https://api.neightivglobal.com/api/paypal/create-order',
-        {
-          amount: calculateTotalUSD(),
-          currency_code: 'USD',
-          cartItems: cartItems.map((item) => {
-            const normalizedItem = normalizeItem(item);
-            return {
+  setLoading(true);
+  setError(null);
+
+  try {
+    const tokenResponse = await axios.post('https://api.neightivglobal.com/api/paypal/token');
+    const accessToken = tokenResponse.data.access_token;
+
+    const orderResponse = await axios.post(
+      'https://api.neightivglobal.com/api/paypal/create-order',
+      {
+        amount: convertPrice(calculateTotals().grandTotal),
+           currency_code: currency,
+        cartItems: cartItems.map((item) => {
+          const normalizedItem = normalizeItem(item);
+          return {
               name: normalizedItem.name,
-              price: parseFloat((normalizedItem.totalPrice * exchangeRate).toFixed(2)),
+              price: convertPrice(normalizedItem.totalPrice),
               quantity: normalizedItem.quantity,
               sku: normalizedItem.id,
-            };
-          }),
-        },
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        }
-      );
-
-      const approvalLink = orderResponse.data.links.find((link) => link.rel === 'approve');
-      if (approvalLink) {
-        window.location.href = approvalLink.href;
-      } else {
-        throw new Error('No approval link found in PayPal response.');
+          };
+        }),
+      },
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
       }
-    } catch (err) {
-      console.error('PayPal checkout error:', err.response?.data || err.message);
-      setError('Failed to initiate PayPal payment. Please try again.');
-    } finally {
-      setLoading(false);
+    );
+
+    const approvalLink = orderResponse.data.links.find((link) => link.rel === 'approve');
+    if (approvalLink) {
+      window.location.href = approvalLink.href;
+    } else {
+      throw new Error('No approval link found in PayPal response.');
     }
-  };
+  } catch (err) {
+    console.error('PayPal checkout error:', err.response?.data || err.message);
+    setError('Failed to initiate PayPal payment. Please try again.');
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <>
@@ -190,9 +187,7 @@ const Cart = () => {
                               <p style={{ fontWeight: '500', color: '#000', fontSize: '16px', margin: 0 }}>
                                 {normalizedItem.name}
                               </p>
-                              <p style={{ color: '#000', fontSize: '14px', margin: 0 }}>
-                                Price: Rs. {normalizedItem.totalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (~${(normalizedItem.totalPrice * exchangeRate).toFixed(2)})
-                              </p>
+                             <p style={{ color: '#000', fontSize: '14px', margin: 0 }}>Price: {currency} {convertPrice(normalizedItem.totalPrice)}</p>
                             </div>
                           </div>
                         </Col>
@@ -241,7 +236,7 @@ const Cart = () => {
                         </Col>
                         <Col md={4} style={{ textAlign: 'right' }}>
                           <p style={{ fontWeight: '500', color: '#000', fontSize: '16px', margin: 0 }}>
-                            Rs. {(normalizedItem.totalPrice * normalizedItem.quantity).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (~${((normalizedItem.totalPrice * normalizedItem.quantity) * exchangeRate).toFixed(2)})
+                            {currency} {convertPrice(normalizedItem.totalPrice * normalizedItem.quantity)}
                           </p>
                         </Col>
                       </Row>
@@ -250,12 +245,12 @@ const Cart = () => {
 
                   <div style={{ textAlign: 'right', marginBottom: '30px' }}>
                     {(() => {
-                      const { grandTotal } = calculateTotalsINR();
+                       const { grandTotal } = calculateTotals();
                       return (
                         <>
-                          <p style={{ fontWeight: '600', color: '#000', fontSize: '18px' }}>
-                            Total (incl. taxes): Rs. {grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (~${(grandTotal * exchangeRate).toFixed(2)})
-                          </p>
+                            <p style={{ fontWeight: '600', color: '#000', fontSize: '18px' }}>
+                          Total: {currency} {convertPrice(grandTotal)}
+                        </p>
                         </>
                       );
                     })()}
@@ -263,6 +258,7 @@ const Cart = () => {
                       Shipping and additional taxes (if applicable) calculated at checkout.
                     </p>
                     <div style={{ display: 'inline-block', width: '200px' }}>
+                      {currency === 'INR' ? (
                       <Button
                         onClick={() => navigate('/checkout', { state: { cartItems: cartItems.map(normalizeItem) } })}
                         style={{
@@ -277,6 +273,7 @@ const Cart = () => {
                       >
                         Check out
                       </Button>
+                            ) : (
                       <Button
                         onClick={handlePayPalCheckout}
                         disabled={loading}
@@ -292,6 +289,7 @@ const Cart = () => {
                       >
                         {loading ? 'Processing...' : 'Pay with PayPal'}
                       </Button>
+                            )}
                       {error && (
                         <p style={{ color: '#ff0000', fontSize: '12px', marginTop: '10px' }}>
                           {error}

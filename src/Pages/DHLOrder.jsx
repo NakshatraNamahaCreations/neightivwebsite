@@ -34,7 +34,7 @@ const DHLOrder = () => {
       const res = await axios.post("https://api.neightivglobal.com/api/dhl/create-shipment", formData);
       setResponse(res.data);
     } catch (error) {
-      console.error(error);
+      console.error("Error creating shipment:", error);
       setResponse({ error: error.response?.data || error.message });
     } finally {
       setLoading(false);
@@ -42,25 +42,21 @@ const DHLOrder = () => {
   };
 
   return (
-    <div style={{ maxWidth: 600, margin: "auto", padding: 20 }}>
+    <div style={{ maxWidth: 600, margin: "auto", padding: 20, marginTop: "20%" }}>
       <h2>DHL Shipment Form (SOAP API)</h2>
       <form onSubmit={handleSubmit}>
-        <h4>Receiver Details</h4>
-        <input name="receiverName" placeholder="Name" onChange={handleChange} required />
-        <input name="receiverAddress" placeholder="Address" onChange={handleChange} required />
-        <input name="receiverCity" placeholder="City" onChange={handleChange} required />
-        <input name="receiverStateCode" placeholder="State Code (e.g., 27)" onChange={handleChange} required />
-        <input name="receiverPostalCode" placeholder="Postal Code" onChange={handleChange} required />
-        <input name="receiverPhone" placeholder="Phone Number" onChange={handleChange} required />
-
-        <h4>Package Info</h4>
-        <input name="weight" placeholder="Weight (kg)" onChange={handleChange} required />
-        <input name="length" placeholder="Length (cm)" onChange={handleChange} required />
-        <input name="width" placeholder="Width (cm)" onChange={handleChange} required />
-        <input name="height" placeholder="Height (cm)" onChange={handleChange} required />
-
-        <button type="submit" disabled={loading} style={{ marginTop: 10 }}>
-          {loading ? "Sending to DHL..." : "Create Shipment"}
+        <input name="receiverName" placeholder="Receiver Name" onChange={handleChange} required />
+        <input name="receiverAddress" placeholder="Receiver Address" onChange={handleChange} required />
+        <input name="receiverCity" placeholder="Receiver City" onChange={handleChange} required />
+        <input name="receiverPostalCode" placeholder="Receiver Postal Code" onChange={handleChange} required />
+        <input name="receiverStateCode" placeholder="Receiver State Code" onChange={handleChange} required />
+        <input name="receiverPhone" placeholder="Receiver Phone" onChange={handleChange} required />
+        <input name="weight" placeholder="Weight" onChange={handleChange} required />
+        <input name="length" placeholder="Length" onChange={handleChange} required />
+        <input name="width" placeholder="Width" onChange={handleChange} required />
+        <input name="height" placeholder="Height" onChange={handleChange} required />
+        <button type="submit" disabled={loading}>
+          {loading ? "Creating Shipment..." : "Create Shipment"}
         </button>
       </form>
 

@@ -5,11 +5,13 @@ import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Footer from '../Components/Footer';
 import { useCart } from './CartContext';
+import { useCurrency } from './CurrencyContext';
 
 const ProductDescription = () => {
-  const { id } = useParams(); // Get the product ID from the URL
+  const { id } = useParams();
   const navigate = useNavigate();
   const { addToCart } = useCart();
+  const { currency, convertPrice } = useCurrency();
   const imageContainerRef = useRef(null);
 
   const [product, setProduct] = useState(null);
@@ -23,15 +25,21 @@ const ProductDescription = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Calculate price with 12% tax (same as Shop.js)
+  const calculatePriceWithTax = (basePrice) => {
+    const taxRate = 0.12;
+    const priceWithTax = basePrice * (1 + taxRate);
+    console.log('ProductDescription: Price with tax', basePrice, '→', priceWithTax);
+    return priceWithTax;
+  };
+
   // Fetch product and related products
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        // Fetch the specific product by ID
         const productResponse = await axios.get(`https://api.neightivglobal.com/api/products/${id}`);
         setProduct(productResponse.data);
 
-        // Fetch all products for related products
         const allProductsResponse = await axios.get('https://api.neightivglobal.com/api/products');
         const filteredRelated = allProductsResponse.data
           .filter((p) => p._id !== id)
@@ -47,11 +55,16 @@ const ProductDescription = () => {
     };
 
     fetchProduct();
-    window.scrollTo(0, 0); // Reset page scroll to top
+    window.scrollTo(0, 0);
     if (imageContainerRef.current) {
-      imageContainerRef.current.scrollTop = 0; // Reset image container scroll
+      imageContainerRef.current.scrollTop = 0;
     }
   }, [id]);
+
+  // Log currency changes
+  useEffect(() => {
+    console.log('ProductDescription: Currency updated to', currency);
+  }, [currency]);
 
   const handleIncrement = () => setQuantity(quantity + 1);
   const handleDecrement = () => {
@@ -60,12 +73,15 @@ const ProductDescription = () => {
 
   const handleAddToCart = () => {
     if (product) {
+      const priceWithTax = calculatePriceWithTax(product.amount);
+      const convertedPrice = convertPrice(priceWithTax);
       addToCart(
         {
           id: product._id,
           name: product.name,
-          price: product.amount,
-         image: `https://api.neightivglobal.com${product.images[0]}`,
+          price: Number(convertedPrice),
+          sku: product.sku,
+          image: `https://api.neightivglobal.com${product.images[0]}`,
         },
         quantity
       );
@@ -109,6 +125,10 @@ const ProductDescription = () => {
     alt: `${product.name} Image ${index + 1}`,
   }));
 
+  // Calculate price with tax and convert to selected currency
+  const priceWithTax = calculatePriceWithTax(product.amount);
+  const convertedPrice = convertPrice(priceWithTax);
+
   return (
     <>
       <div style={{ backgroundColor: '#fff', padding: '80px 0', position: 'relative', marginTop: '-2%' }}>
@@ -140,7 +160,8 @@ const ProductDescription = () => {
                 {product.name}
               </h2>
               <p style={{ fontWeight: '500', color: '#5b3327', fontSize: '18px' }}>
-                Rs. {product.amount.toLocaleString('en-IN')} <span style={{ fontSize: '14px' }}>(exclusive of taxes)</span>
+                {currency} {Number(convertedPrice).toLocaleString('en', { minimumFractionDigits: 2 })}
+                <span style={{ fontSize: '14px' }}> (inclusive of 12% taxes)</span>
               </p>
 
               {/* Quantity Selector */}
@@ -238,12 +259,7 @@ const ProductDescription = () => {
                   <span style={{ fontSize: '20px', color: '#000' }}>{isMaterialCareOpen ? '−' : '+'}</span>
                 </div>
                 {isMaterialCareOpen && (
-                  // <ul style={{ color: '#000', marginTop: '10px', paddingLeft: '20px' }}>
-                  //   <li>Material: {materialCare.material}</li>
-                  //   <li>{materialCare.detail}</li>
-                  //   <li>Care instructions: {materialCare.care}</li>
-                  // </ul>
-                    <p style={{ color: '#000', marginTop: '10px', fontSize: '18px' }}>
+                  <p style={{ color: '#000', marginTop: '10px', fontSize: '18px' }}>
                     {product.details}
                   </p>
                 )}
@@ -311,33 +327,37 @@ const ProductDescription = () => {
             You may also like
           </h3>
           <Row>
-            {relatedProducts.map((relatedProduct) => (
-              <Col md={3} key={relatedProduct._id} style={{ marginBottom: '30px' }}>
-                <div
-                  style={{ cursor: 'pointer' }}
-                  onMouseEnter={() => setHoveredProduct(relatedProduct._id)}
-                  onMouseLeave={() => setHoveredProduct(null)}
-                  onClick={() => navigate(`/product/${relatedProduct._id}`)}
-                >
-                  <Image
-                    src={
-                      hoveredProduct === relatedProduct._id && relatedProduct.images[1]
-                        ? `https://api.neightivglobal.com${relatedProduct.images[1]}`
-                        : `https://api.neightivglobal.com${relatedProduct.images[0]}`
-                    }
-                    alt={relatedProduct.name}
-                    fluid
-                    style={{ width: '100%', height: '400px', objectFit: 'cover' }}
-                  />
-                  <div style={{ textAlign: 'center', marginTop: '10px' }}>
-                    <p style={{ color: '#5b3327', fontSize: '16px', margin: 0 }}>{relatedProduct.name}</p>
-                    <p style={{ color: '#5b3327', fontSize: '14px', fontWeight: '500' }}>
-                      Rs. {relatedProduct.amount.toLocaleString('en-IN')}
-                    </p>
+            {relatedProducts.map((relatedProduct) => {
+              const relatedPriceWithTax = calculatePriceWithTax(relatedProduct.amount);
+              const relatedConvertedPrice = convertPrice(relatedPriceWithTax);
+              return (
+                <Col md={3} key={relatedProduct._id} style={{ marginBottom: '30px' }}>
+                  <div
+                    style={{ cursor: 'pointer' }}
+                    onMouseEnter={() => setHoveredProduct(relatedProduct._id)}
+                    onMouseLeave={() => setHoveredProduct(null)}
+                    onClick={() => navigate(`/product/${relatedProduct._id}`)}
+                  >
+                    <Image
+                      src={
+                        hoveredProduct === relatedProduct._id && relatedProduct.images[1]
+                          ? `https://api.neightivglobal.com${relatedProduct.images[1]}`
+                          : `https://api.neightivglobal.com${relatedProduct.images[0]}`
+                      }
+                      alt={relatedProduct.name}
+                      fluid
+                      style={{ width: '100%', height: '400px', objectFit: 'cover' }}
+                    />
+                    <div style={{ textAlign: 'center', marginTop: '10px' }}>
+                      <p style={{ color: '#5b3327', fontSize: '16px', margin: 0 }}>{relatedProduct.name}</p>
+                      <p style={{ color: '#5b3327', fontSize: '14px', fontWeight: '500' }}>
+                        {currency} {Number(relatedConvertedPrice).toLocaleString('en', { minimumFractionDigits: 2 })}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </Col>
-            ))}
+                </Col>
+              );
+            })}
           </Row>
         </Container>
       </div>
