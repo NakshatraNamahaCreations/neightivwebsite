@@ -25,7 +25,7 @@ const ProductDescription = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Calculate price with 12% tax (same as Shop.js)
+  // Calculate price with 12% tax
   const calculatePriceWithTax = (basePrice) => {
     const taxRate = 0.12;
     const priceWithTax = basePrice * (1 + taxRate);
@@ -73,13 +73,12 @@ const ProductDescription = () => {
 
   const handleAddToCart = () => {
     if (product) {
-      const priceWithTax = calculatePriceWithTax(product.amount);
-      const convertedPrice = convertPrice(priceWithTax);
+      const priceWithTax = calculatePriceWithTax(product.amount); // Price in INR with tax
       addToCart(
         {
           id: product._id,
           name: product.name,
-          price: Number(convertedPrice),
+          price: priceWithTax, // Store price in INR
           sku: product.sku,
           image: `https://api.neightivglobal.com${product.images[0]}`,
         },
@@ -125,7 +124,7 @@ const ProductDescription = () => {
     alt: `${product.name} Image ${index + 1}`,
   }));
 
-  // Calculate price with tax and convert to selected currency
+  // Calculate price with tax and convert to selected currency for display
   const priceWithTax = calculatePriceWithTax(product.amount);
   const convertedPrice = convertPrice(priceWithTax);
 
@@ -161,7 +160,7 @@ const ProductDescription = () => {
               </h2>
               <p style={{ fontWeight: '500', color: '#5b3327', fontSize: '18px' }}>
                 {currency} {Number(convertedPrice).toLocaleString('en', { minimumFractionDigits: 2 })}
-                <span style={{ fontSize: '14px' }}> (inclusive of 12% taxes)</span>
+                <span style={{ fontSize: '14px' }}> (inclusive of taxes)</span>
               </p>
 
               {/* Quantity Selector */}

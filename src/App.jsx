@@ -39,19 +39,19 @@ const fallbackExchangeRates = {
 };
 
 function App() {
-  const [country, setCountry] = useState('US'); // Default to US
-  const [currency, setCurrency] = useState('USD'); // Default to USD
+const [country, setCountry] = useState('IN'); 
+  const [currency, setCurrency] = useState('INR');
   const [exchangeRates, setExchangeRates] = useState(fallbackExchangeRates);
   const [isAllowed, setIsAllowed] = useState(true);
   const [loading, setLoading] = useState(true);
 
-  // Handle country change from dropdown
-  const handleCountryChange = (countryCode) => {
+const handleCountryChange = (countryCode) => {
     console.log('App: Country changed to', countryCode);
     setCountry(countryCode);
     const countryData = countryList.findByIso2(countryCode);
-    const newCurrency = countryData?.currency?.code || 'USD';
+    const newCurrency = countryData?.currency?.code || 'INR';
     setCurrency(newCurrency);
+    localStorage.setItem('selectedCountry', countryCode); // Save to localStorage
     console.log('App: Currency set to', newCurrency);
   };
 
@@ -88,30 +88,44 @@ function App() {
       }
     };
 
-    // Fetch IP-based country
-    const fetchCountry = async () => {
-      try {
-        const response = await axios.get('http://ip-api.com/json');
-        const countryCode = response.data.countryCode || 'US';
-        setCountry(countryCode);
-        const countryData = countryList.findByIso2(countryCode);
-        const initialCurrency = countryData?.currency?.code || 'USD';
-        setCurrency(initialCurrency);
-        console.log('App: Initial country', countryCode, 'currency', initialCurrency);
-        setLoading(false);
-      } catch (error) {
-        console.error('App: Error fetching IP data:', error);
-        setCountry('US');
-        setCurrency('USD');
+  const fetchCountry = async () => {
+      if (typeof window !== 'undefined') {
+        try {
+          const response = await axios.get('http://ip-api.com/json');
+          console.log('App: IP Address', response.data.query); // Log IP for debugging
+          const countryCode = response.data.countryCode || 'IN';
+          setCountry(countryCode);
+          const countryData = countryList.findByIso2(countryCode);
+          const initialCurrency = countryData?.currency?.code || 'INR';
+          setCurrency(initialCurrency);
+          console.log('App: Initial country', countryCode, 'currency', initialCurrency);
+          setLoading(false);
+        } catch (error) {
+          console.error('App: Error fetching IP data:', error);
+          setCountry('IN');
+          setCurrency('INR');
+          setLoading(false);
+        }
+      } else {
+        setCountry('IN');
+        setCurrency('INR');
         setLoading(false);
       }
     };
 
+    const savedCountry = localStorage.getItem('selectedCountry');
+    if (savedCountry) {
+      setCountry(savedCountry);
+      const countryData = countryList.findByIso2(savedCountry);
+      const savedCurrency = countryData?.currency?.code || 'INR';
+      setCurrency(savedCurrency);
+      setLoading(false);
+    } else {
+      fetchCountry();
+    }
     fetchExchangeRates();
-    fetchCountry();
   }, []);
 
-  // Log currency and exchange rates changes
   useEffect(() => {
     console.log('App: Currency updated to', currency, 'with rates', exchangeRates);
   }, [currency, exchangeRates]);

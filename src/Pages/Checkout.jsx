@@ -197,8 +197,8 @@ const Checkout = () => {
     }
 
     const { grandTotal } = calculateTotalsINR();
-    // const amountToCharge = parseFloat((grandTotal + selectedCourier.rate).toFixed(2));
-    const amountToCharge = 1;
+    const amountToCharge = parseFloat((grandTotal + selectedCourier.rate).toFixed(2));
+    // const amountToCharge = 1;
 
     const payload = {
       amount: amountToCharge*100,// amountToCharge * 100,

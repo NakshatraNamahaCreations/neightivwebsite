@@ -5,11 +5,13 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Footer from '../Components/Footer';
+import { useCurrency } from './CurrencyContext';
 
 const InternationalCheckout = () => {
   const { cartItems } = useCart();
   const navigate = useNavigate();
   const location = useLocation();
+  const { currency, convertPrice } = useCurrency();
   const [shippingDetails, setShippingDetails] = useState({
     receiverName: '',
     receiverAddress: '',
@@ -23,45 +25,58 @@ const InternationalCheckout = () => {
   const [loading, setLoading] = useState(false);
   const [shippingQuote, setShippingQuote] = useState(null);
 
-  const exchangeRate = 0.012;
+  const exchangeRate = 0.012; // INR to USD
 
-  // Normalize cart item to use base price only
   const normalizeItem = (item) => {
-    const basePrice = item.price || 0;
-    return { ...item, basePrice };
+    // item.price is tax-inclusive in INR from ProductDescription
+    const totalPrice = Number(item.price) || 0; // Use tax-inclusive price directly
+    console.log('InternationalCheckout: Normalizing item', { name: item.name, totalPrice });
+    return { ...item, totalPrice };
   };
 
-  // Calculate totals in USD for PayPal without tax
-  const calculateTotalUSD = () => {
-    const grandTotal = cartItems.reduce(
+  const calculateTotal = () => {
+    return cartItems.reduce(
       (total, item) => {
         const normalizedItem = normalizeItem(item);
-        return total + normalizedItem.basePrice * item.quantity;
+        const convertedTotalPrice = Number(convertPrice(normalizedItem.totalPrice));
+        console.log('InternationalCheckout: Calculating total for', {
+          name: normalizedItem.name,
+          totalPrice: normalizedItem.totalPrice,
+          convertedTotalPrice,
+          quantity: item.quantity,
+        });
+        return total + convertedTotalPrice * item.quantity;
       },
       0
     );
-    return parseFloat((grandTotal * exchangeRate).toFixed(2));
   };
 
-  // Calculate shipment details for DHL
+  const calculateTotalUSD = () => {
+    const total = cartItems.reduce(
+      (total, item) => {
+        const normalizedItem = normalizeItem(item);
+        return total + normalizedItem.totalPrice * item.quantity * exchangeRate;
+      },
+      0
+    );
+    return parseFloat(total.toFixed(2));
+  };
+
   const calculateShipmentDetails = () => {
-    const totalWeight = cartItems.reduce((sum, item) => sum + (item.weight || 1), 0); // Default 1kg per item
-    
+    const totalWeight = cartItems.reduce((sum, item) => sum + (item.weight || 1), 0);
     return {
       weight: totalWeight.toString(),
-      length: '10', // Default dimensions (cm), adjust as needed
+      length: '10',
       width: '10',
       height: '1',
     };
   };
 
-  // Handle form input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setShippingDetails((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Validate shipping details
   const validateShippingDetails = () => {
     const requiredFields = [
       'receiverName',
@@ -85,7 +100,6 @@ const InternationalCheckout = () => {
     return true;
   };
 
-  // Handle DHL shipping and PayPal payment
   const handleDHLAndPayPal = async () => {
     if (!validateShippingDetails()) return;
 
@@ -96,13 +110,13 @@ const InternationalCheckout = () => {
       const shipmentDetails = calculateShipmentDetails();
       const totalUSD = calculateTotalUSD();
 
-      // Step 1: Create order by sending data to backend for DHL shipment
-      const shipmentResponse = await axios.post("https://api.neightivglobal.com/api/dhl/create-shipment", {
+      // Step 1: Create DHL shipment
+      const shipmentResponse = await axios.post('http://localhost:8011/api/dhl/create-shipment', {
         receiverName: shippingDetails.receiverName,
         receiverAddress: shippingDetails.receiverAddress,
         receiverCity: shippingDetails.receiverCity,
         receiverPostalCode: shippingDetails.receiverPostalCode,
-        receiverStateCode: shippingDetails.receiverStateCode,
+        receiverStateCode: shippingDetails.receiverStateCode, // Fixed typo
         receiverPhone: shippingDetails.receiverPhone,
         receiverCountryCode: shippingDetails.receiverCountryCode,
         declaredValue: totalUSD.toString(),
@@ -110,26 +124,34 @@ const InternationalCheckout = () => {
         length: shipmentDetails.length,
         width: shipmentDetails.width,
         height: shipmentDetails.height,
-        cartItems: cartItems,
+        cartItems: cartItems.map((item) => {
+          const normalizedItem = normalizeItem(item);
+          return {
+            name: normalizedItem.name,
+            price: normalizedItem.totalPrice,
+            quantity: normalizedItem.quantity,
+            sku: normalizedItem.id,
+          };
+        }),
       });
 
       console.log('📦 Order Created (DHL Shipment):', shipmentResponse.data);
-      alert("Order created successfully!");
+      setShippingQuote(shipmentResponse.data);
 
-      // Step 2: Initiate PayPal Payment after successful order creation
+      // Step 2: Initiate PayPal Payment
       const tokenResponse = await axios.post('https://api.neightivglobal.com/api/paypal/token');
       const accessToken = tokenResponse.data.access_token;
 
       const orderResponse = await axios.post(
         'https://api.neightivglobal.com/api/paypal/create-order',
         {
-          amount: calculateTotalUSD(),
+          amount: totalUSD,
           currency_code: 'USD',
           cartItems: cartItems.map((item) => {
             const normalizedItem = normalizeItem(item);
             return {
               name: normalizedItem.name,
-              price: parseFloat((normalizedItem.basePrice * exchangeRate).toFixed(2)),
+              price: parseFloat((normalizedItem.totalPrice * exchangeRate).toFixed(2)),
               quantity: normalizedItem.quantity,
               sku: normalizedItem.id,
             };
@@ -276,46 +298,49 @@ const InternationalCheckout = () => {
                     <h4 style={{ color: '#000', marginBottom: '20px' }}>Order Summary</h4>
                     {cartItems.map((item) => {
                       const normalizedItem = normalizeItem(item);
+                      const convertedTotalPrice = Number(convertPrice(normalizedItem.totalPrice));
                       return (
                         <Row key={normalizedItem.id} style={{ marginBottom: '10px' }}>
                           <Col md={6}>{normalizedItem.name} (x{normalizedItem.quantity})</Col>
                           <Col md={6} style={{ textAlign: 'right' }}>
-                            ${((normalizedItem.basePrice * normalizedItem.quantity) * exchangeRate).toFixed(2)}
+                            {currency} {(convertedTotalPrice * normalizedItem.quantity).toLocaleString('en', { minimumFractionDigits: 2 })}
                           </Col>
                         </Row>
                       );
                     })}
                     <hr />
-                    <div style={{ textAlign: 'right', marginTop: '20px' }}>
-                      <p style={{ fontWeight: '600', color: '#000', fontSize: '18px' }}>
-                        Total: ${calculateTotalUSD().toFixed(2)} (USD)
-                      </p>
-                      {shippingQuote && (
-                        <p style={{ color: '#000', fontSize: '14px' }}>
-                          Shipping Quote: {JSON.stringify(shippingQuote)}
-                        </p>
-                      )}
-                      {error && (
-                        <p style={{ color: '#ff0000', fontSize: '12px', marginBottom: '10px' }}>
-                          {error}
-                        </p>
-                      )}
-                      <Button
-                        onClick={handleDHLAndPayPal}
-                        disabled={loading}
-                        style={{
-                          backgroundColor: '#ffcc00',
-                          color: '#000',
-                          border: 'none',
-                          borderRadius: '0',
-                          padding: '10px 20px',
-                          fontWeight: '500',
-                          width: '200px',
-                        }}
-                      >
-                        {loading ? 'Processing...' : 'Pay with PayPal (DHL)'}
-                      </Button>
-                    </div>
+                 <div style={{ textAlign: 'right', marginTop: '20px' }}>
+  <p style={{ fontWeight: '600', color: '#000', fontSize: '18px' }}>
+    Total: {currency} {Number(calculateTotal()).toLocaleString('en', { minimumFractionDigits: 2 })}
+  </p>
+  <p style={{ fontWeight: '600', color: '#000', fontSize: '18px' }}>
+    Total in USD: ${calculateTotalUSD().toFixed(2)}
+  </p>
+
+  <p style={{ color: '#000', fontSize: '12px', marginBottom: '20px' }}>
+    Shipping calculated at checkout.
+  </p>
+  {error && (
+    <p style={{ color: '#ff0000', fontSize: '12px', marginBottom: '10px' }}>
+      {error}
+    </p>
+  )}
+  <Button
+    onClick={handleDHLAndPayPal}
+    disabled={loading}
+    style={{
+      backgroundColor: '#ffcc00',
+      color: '#000',
+      border: 'none',
+      borderRadius: '0',
+      padding: '10px 20px',
+      fontWeight: '500',
+      width: '200px',
+    }}
+  >
+    {loading ? 'Processing...' : 'Pay with PayPal (DHL)'}
+  </Button>
+</div>
                   </div>
                 </>
               )}

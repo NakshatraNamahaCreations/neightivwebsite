@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Container, Button, Row, Col , Carousel} from 'react-bootstrap';
 import { Tilt } from 'react-tilt';
+import { useNavigate } from 'react-router-dom';
 import './HomePage.css';
 import Equestrian1 from '../../src/assets/Equestrian1.webp';
 import Equestrian2 from '../../src/assets/Equestrian2.webp';
@@ -35,7 +36,7 @@ import layout12 from '../assets/layout12.png';
 
 
 const HomePage = () => {
-
+const navigate = useNavigate();
 
   const instagramPostLinks = [
     'https://www.instagram.com/p/DKzHCkvzLsO/?img_index=1', // Replace with actual post URL for Image1
@@ -59,6 +60,14 @@ const HomePage = () => {
     useEffect(() => {
     AOS.init({ duration: 1000, once: true });
   }, []);
+
+
+  const handleShopNowClick = () => {
+    navigate('/shop'); // Navigate to /shop route
+  };
+
+
+
   return (
     <div className="home-page">
       {/* Banner Section */}
@@ -72,7 +81,7 @@ const HomePage = () => {
                 Our fashion products are innovatively designed and intricately crafted, 
                 Truly must-have pieces in your wardrobe!
               </p>
-              <Button className="shop-now-btn">Shop Now</Button>
+              <Button className="shop-now-btn" onClick={handleShopNowClick}>Shop Now</Button>
             </Col>
 
             {/* Right Content Section */}
@@ -642,38 +651,43 @@ const HomePage = () => {
 
 
 
-<section style={{ backgroundColor: '#fbeede', padding: '60px 0' }}>
-        <Container>
-          <h3 style={{ textAlign: 'center', color: '#3d2b1f', fontSize: '24px', marginBottom: '40px' }}>
-            Follow Us On Instagram
-          </h3>
-          <Row className="justify-content-center">
-            {[Image1, Image2, Image3, Image4, Image5, Image6].map((img, index) => (
-              <Col key={index} xs={6} md={2} className="mb-4 d-flex justify-content-center">
-                <a
-                  href={instagramPostLinks[index]} // Use specific post URL
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ display: 'block', position: 'relative', overflow: 'hidden', borderRadius: '' }}
-                >
-                  <img
-                    src={img}
-                    alt={`Instagram ${index + 1}`}
-                    style={{
-                      width: '100%',
-                      height: '220px',
-                      objectFit: 'cover',
-                      transition: '0.3s ease-in-out',
-                    }}
-                    onMouseOver={(e) => (e.currentTarget.style.filter = 'brightness(70%)')}
-                    onMouseOut={(e) => (e.currentTarget.style.filter = 'brightness(100%)')}
-                  />
-                </a>
-              </Col>
-            ))}
-          </Row>
-        </Container>
-      </section>
+<section style={{ backgroundColor: '#fbeede', padding: '40px 0' }}>
+  <Container>
+    <h3 style={{ textAlign: 'center', color: '#3d2b1f', fontSize: '24px', marginBottom: '30px' }}>
+      Follow Us On Instagram
+    </h3>
+
+    <Row className="flex-nowrap overflow-auto" style={{ gap: '10px' , }}>
+      {[
+        'https://www.instagram.com/p/DKzHCkvzLsO/',
+        'https://www.instagram.com/p/DJZFhKHz-yT/',
+        'https://www.instagram.com/p/DIbeNx8Tvrj/',
+        'https://www.instagram.com/p/DJULoE1zt63/',
+        'https://www.instagram.com/p/DGxx_arTUxz/',
+        // 'https://www.instagram.com/p/DGxx_arTUxz/',
+
+      ].map((link, index) => (
+        <Col key={index} xs="auto" style={{ minWidth: '250px' }}>
+          <a href={link} target="_blank" rel="noopener noreferrer">
+            <iframe
+              src={`https://www.instagram.com/p/${link.split('/p/')[1].replace('/', '')}/embed`}
+              width="200"
+              height="250"
+              frameBorder="0"
+              scrolling="no"
+              allowTransparency
+              allow="encrypted-media"
+              style={{ borderRadius: '8px' }}
+            ></iframe>
+          </a>
+        </Col>
+      ))}
+    </Row>
+  </Container>
+</section>
+
+
+
 
 
 

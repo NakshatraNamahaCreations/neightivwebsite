@@ -13,95 +13,101 @@ const Cart = () => {
   const navigate = useNavigate();
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
-
   const { currency, convertPrice } = useCurrency();
 
-
-   const normalizeItem = (item) => {
-    if (item.basePrice && item.totalPrice) {
-      return item; 
-    }
-    const basePrice = item.price || 0;
-    const totalPrice = basePrice; 
+  const normalizeItem = (item) => {
+    // item.price is tax-inclusive in INR from ProductDescription
+    const totalPrice = Number(item.price) || 0; // Price in INR, tax-inclusive
+    console.log('Cart: Normalizing item', { name: item.name, rawPrice: item.price, totalPrice });
     return {
       ...item,
-      basePrice,
       totalPrice,
     };
   };
 
-
-   const calculateTotals = () => {
-    return cartItems.reduce(
+  const calculateTotals = () => {
+    let runningTotal = 0;
+    const totals = cartItems.reduce(
       (totals, item) => {
         const normalizedItem = normalizeItem(item);
+        const convertedTotalPrice = Number(convertPrice(normalizedItem.totalPrice));
+        runningTotal += convertedTotalPrice * item.quantity;
+        console.log('Cart: Calculating total for', {
+          name: normalizedItem.name,
+          totalPrice: normalizedItem.totalPrice,
+          convertedTotalPrice,
+          quantity: item.quantity,
+          runningTotal,
+        });
         return {
-          baseTotal: totals.baseTotal + normalizedItem.basePrice * item.quantity,
-          grandTotal: totals.grandTotal + normalizedItem.totalPrice * item.quantity,
+          grandTotal: runningTotal,
         };
       },
-      { baseTotal: 0, grandTotal: 0 }
+      { grandTotal: 0 }
     );
+    console.log('Cart: Final grand total calculation', { finalGrandTotal: totals.grandTotal, expectedSum: runningTotal });
+    return totals;
   };
 
+  const handlePayPalCheckout = async () => {
+    if (cartItems.length === 0) {
+      setError('Your cart is empty.');
+      return;
+    }
 
- // In Cart.js, update handlePayPalCheckout
-const handlePayPalCheckout = async () => {
-  if (cartItems.length === 0) {
-    setError('Your cart is empty.');
-    return;
-  }
+    const selectedCountry = 'US'; // Replace with actual country selection logic
 
-  // Example: Assume country is selected elsewhere or hardcoded for testing
-  const selectedCountry = 'US'; // Replace with actual country selection logic (e.g., from a dropdown)
+    if (selectedCountry !== 'IN') {
+      navigate('/international-checkout', {
+        state: { cartItems: cartItems.map(normalizeItem), countryCode: selectedCountry },
+      });
+      return;
+    }
 
-  if (selectedCountry !== 'IN') {
-    navigate('/international-checkout', {
-      state: { cartItems: cartItems.map(normalizeItem), countryCode: selectedCountry },
-    });
-    return;
-  }
+    setLoading(true);
+    setError(null);
 
-  setLoading(true);
-  setError(null);
+    try {
+      const tokenResponse = await axios.post('https://api.neightivglobal.com/api/paypal/token');
+      const accessToken = tokenResponse.data.access_token;
 
-  try {
-    const tokenResponse = await axios.post('https://api.neightivglobal.com/api/paypal/token');
-    const accessToken = tokenResponse.data.access_token;
+      const { grandTotal } = calculateTotals();
+      const convertedTotal = Number(convertPrice(grandTotal));
 
-    const orderResponse = await axios.post(
-      'https://api.neightivglobal.com/api/paypal/create-order',
-      {
-        amount: convertPrice(calculateTotals().grandTotal),
-           currency_code: currency,
-        cartItems: cartItems.map((item) => {
-          const normalizedItem = normalizeItem(item);
-          return {
+      const orderResponse = await axios.post(
+        'https://api.neightivglobal.com/api/paypal/create-order',
+        {
+          amount: convertedTotal.toFixed(2),
+          currency_code: currency,
+          cartItems: cartItems.map((item) => {
+            const normalizedItem = normalizeItem(item);
+            const convertedPrice = Number(convertPrice(normalizedItem.totalPrice));
+            return {
               name: normalizedItem.name,
-              price: convertPrice(normalizedItem.totalPrice),
+              price: convertedPrice.toFixed(2),
               quantity: normalizedItem.quantity,
               sku: normalizedItem.id,
-          };
-        }),
-      },
-      {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      }
-    );
+            };
+          }),
+        },
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }
+      );
 
-    const approvalLink = orderResponse.data.links.find((link) => link.rel === 'approve');
-    if (approvalLink) {
-      window.location.href = approvalLink.href;
-    } else {
-      throw new Error('No approval link found in PayPal response.');
+      const approvalLink = orderResponse.data.links.find((link) => link.rel === 'approve');
+      if (approvalLink) {
+        window.location.href = approvalLink.href;
+      } else {
+        throw new Error('No approval link found in PayPal response.');
+      }
+    } catch (err) {
+      console.error('PayPal checkout error:', err.response?.data || err.message);
+      setError('Failed to initiate PayPal payment. Please try again.');
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    console.error('PayPal checkout error:', err.response?.data || err.message);
-    setError('Failed to initiate PayPal payment. Please try again.');
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   return (
     <>
@@ -174,6 +180,7 @@ const handlePayPalCheckout = async () => {
 
                   {cartItems.map((item) => {
                     const normalizedItem = normalizeItem(item);
+                    const convertedTotalPrice = Number(convertPrice(normalizedItem.totalPrice));
                     return (
                       <Row key={normalizedItem.id} style={{ marginBottom: '20px', alignItems: 'center' }}>
                         <Col md={4}>
@@ -187,7 +194,9 @@ const handlePayPalCheckout = async () => {
                               <p style={{ fontWeight: '500', color: '#000', fontSize: '16px', margin: 0 }}>
                                 {normalizedItem.name}
                               </p>
-                             <p style={{ color: '#000', fontSize: '14px', margin: 0 }}>Price: {currency} {convertPrice(normalizedItem.totalPrice)}</p>
+                              <p style={{ color: '#000', fontSize: '14px', margin: 0 }}>
+                                Price: {currency} {convertedTotalPrice.toLocaleString('en', { minimumFractionDigits: 2 })}
+                              </p>
                             </div>
                           </div>
                         </Col>
@@ -236,7 +245,7 @@ const handlePayPalCheckout = async () => {
                         </Col>
                         <Col md={4} style={{ textAlign: 'right' }}>
                           <p style={{ fontWeight: '500', color: '#000', fontSize: '16px', margin: 0 }}>
-                            {currency} {convertPrice(normalizedItem.totalPrice * normalizedItem.quantity)}
+                            {currency} {(convertedTotalPrice * normalizedItem.quantity).toLocaleString('en', { minimumFractionDigits: 2 })}
                           </p>
                         </Col>
                       </Row>
@@ -245,51 +254,53 @@ const handlePayPalCheckout = async () => {
 
                   <div style={{ textAlign: 'right', marginBottom: '30px' }}>
                     {(() => {
-                       const { grandTotal } = calculateTotals();
+                      const { grandTotal } = calculateTotals();
+                      const convertedGrandTotal = Number(convertPrice(grandTotal));
+                      console.log('Cart: Grand total', { grandTotal, convertedGrandTotal, currency });
                       return (
                         <>
-                            <p style={{ fontWeight: '600', color: '#000', fontSize: '18px' }}>
-                          Total: {currency} {convertPrice(grandTotal)}
-                        </p>
+                          <p style={{ fontWeight: '600', color: '#000', fontSize: '18px' }}>
+                            Total: {currency} {convertedGrandTotal.toLocaleString('en', { minimumFractionDigits: 2 })}
+                          </p>
                         </>
                       );
                     })()}
                     <p style={{ color: '#000', fontSize: '12px', marginBottom: '20px' }}>
-                      Shipping and additional taxes (if applicable) calculated at checkout.
+                      Shipping calculated at checkout.
                     </p>
                     <div style={{ display: 'inline-block', width: '200px' }}>
                       {currency === 'INR' ? (
-                      <Button
-                        onClick={() => navigate('/checkout', { state: { cartItems: cartItems.map(normalizeItem) } })}
-                        style={{
-                          backgroundColor: '#000',
-                          border: 'none',
-                          borderRadius: '0',
-                          padding: '10px 0',
-                          fontWeight: '500',
-                          width: '100%',
-                          marginBottom: '10px',
-                        }}
-                      >
-                        Check out
-                      </Button>
-                            ) : (
-                      <Button
-                        onClick={handlePayPalCheckout}
-                        disabled={loading}
-                        style={{
-                          backgroundColor: '#ffcc00',
-                          color: '#000',
-                          border: 'none',
-                          borderRadius: '0',
-                          padding: '10px 0',
-                          fontWeight: '500',
-                          width: '100%',
-                        }}
-                      >
-                        {loading ? 'Processing...' : 'Pay with PayPal'}
-                      </Button>
-                            )}
+                        <Button
+                          onClick={() => navigate('/checkout', { state: { cartItems: cartItems.map(normalizeItem) } })}
+                          style={{
+                            backgroundColor: '#000',
+                            border: 'none',
+                            borderRadius: '0',
+                            padding: '10px 0',
+                            fontWeight: '500',
+                            width: '100%',
+                            marginBottom: '10px',
+                          }}
+                        >
+                          Check out
+                        </Button>
+                      ) : (
+                        <Button
+                          onClick={handlePayPalCheckout}
+                          disabled={loading}
+                          style={{
+                            backgroundColor: '#ffcc00',
+                            color: '#000',
+                            border: 'none',
+                            borderRadius: '0',
+                            padding: '10px 0',
+                            fontWeight: '500',
+                            width: '100%',
+                          }}
+                        >
+                          {loading ? 'Processing...' : 'Pay with PayPal'}
+                        </Button>
+                      )}
                       {error && (
                         <p style={{ color: '#ff0000', fontSize: '12px', marginTop: '10px' }}>
                           {error}
