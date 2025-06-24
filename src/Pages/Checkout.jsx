@@ -461,7 +461,7 @@ const Checkout = () => {
                       </Col>
                       <Col style={{ textAlign: 'right' }}>
                         <p style={{ fontWeight: '500', color: '#000', fontSize: '16px', margin: 0 }}>
-                          Rs. {(calculateTotalsINR().grandTotal + (selectedCourier?.rate || 0)).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          Rs. {(calculateTotalsINR().grandTotal + (selectedCourier?.rate || 0)).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0, })}
                         </p>
                       </Col>
                     </Row>

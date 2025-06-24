@@ -176,9 +176,13 @@ const Shop = () => {
                     <h5 style={{ marginTop: '15px', fontFamily: 'Lora', color: '#5b3327' }}>
                       {product.name}
                     </h5>
-                    <p style={{ fontWeight: '500', color: '#5b3327' }}>
+                    {/* <p style={{ fontWeight: '500', color: '#5b3327' }}>
                       {currency} {Number(convertedPrice).toLocaleString('en', { minimumFractionDigits: 2 })}
-                    </p>
+                    </p> */
+                    }
+                    <p style={{ fontWeight: '500', color: '#5b3327' }}>
+  {currency} {Math.floor(Number(convertedPrice)).toLocaleString('en')}
+</p>
                   </div>
                 </Col>
               );

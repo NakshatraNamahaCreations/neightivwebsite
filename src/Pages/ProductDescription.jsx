@@ -158,10 +158,14 @@ const ProductDescription = () => {
               <h2 style={{ fontFamily: 'Lora, serif', color: '#000', fontWeight: '500', fontSize: '42px' }}>
                 {product.name}
               </h2>
-              <p style={{ fontWeight: '500', color: '#5b3327', fontSize: '18px' }}>
+              {/* <p style={{ fontWeight: '500', color: '#5b3327', fontSize: '18px' }}>
                 {currency} {Number(convertedPrice).toLocaleString('en', { minimumFractionDigits: 2 })}
                 <span style={{ fontSize: '14px' }}> (inclusive of taxes)</span>
-              </p>
+              </p> */}
+       <p style={{ fontWeight: '500', color: '#5b3327', fontSize: '18px' }}>
+  {currency} {Number(convertedPrice).toLocaleString('en', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+  <span style={{ fontSize: '14px' }}> (inclusive of taxes)</span>
+</p>
 
               {/* Quantity Selector */}
               <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>

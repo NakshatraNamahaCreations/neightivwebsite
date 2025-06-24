@@ -57,6 +57,18 @@ const Cart = () => {
 
     const selectedCountry = 'US'; // Replace with actual country selection logic
 
+  //   if (selectedCountry !== 'IN') {
+  //     navigate('/international-checkout', {
+  //      state: {
+  //   cartItems: cartItems.map(normalizeItem),
+  //   countryCode: selectedCountry,
+  //   convertedGrandTotal: Number(convertPrice(calculateTotals().grandTotal)).toFixed(2), // Pass grand total in selected currency
+  //   currency, // Pass currency
+  // },
+  //     });
+  //     return;
+  //   }
+
     if (selectedCountry !== 'IN') {
       navigate('/international-checkout', {
         state: { cartItems: cartItems.map(normalizeItem), countryCode: selectedCountry },
@@ -245,7 +257,7 @@ const Cart = () => {
                         </Col>
                         <Col md={4} style={{ textAlign: 'right' }}>
                           <p style={{ fontWeight: '500', color: '#000', fontSize: '16px', margin: 0 }}>
-                            {currency} {(convertedTotalPrice * normalizedItem.quantity).toLocaleString('en', { minimumFractionDigits: 2 })}
+                            {currency} {(convertedTotalPrice * normalizedItem.quantity).toLocaleString('en', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                           </p>
                         </Col>
                       </Row>
