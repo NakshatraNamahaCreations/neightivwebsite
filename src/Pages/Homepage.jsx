@@ -210,7 +210,7 @@ const navigate = useNavigate();
                         <div className="glossy-overlay"></div>
                       </div>
                       <p className="image-caption">Entry to the tack room</p>
-                      <p className="image-price">Rs. 8,4999</p>
+                      <p className="image-price">Rs. 8,499</p>
                     </Tilt>
                   </Col>
                   <Col md={4} data-aos="fade-up">
@@ -240,7 +240,7 @@ const navigate = useNavigate();
                         <div className="glossy-overlay"></div>
                       </div>
                       <p className="image-caption">The grazing synergy</p>
-                      <p className="image-price">Rs.8,4999</p>
+                      <p className="image-price">Rs.8,499</p>
                     </Tilt>
                   </Col>
                   <Col md={4} data-aos="fade-left">
@@ -270,7 +270,7 @@ const navigate = useNavigate();
                         <div className="glossy-overlay"></div>
                       </div>
                       <p className="image-caption">Saddle power</p>
-                      <p className="image-price">Rs. 8,4999</p>
+                      <p className="image-price">Rs. 8,499</p>
                     </Tilt>
                   </Col>
                 </Row>
@@ -305,7 +305,7 @@ const navigate = useNavigate();
                         <div className="glossy-overlay"></div>
                       </div>
                       <p className="image-caption">Saddles in Queue</p>
-                      <p className="image-price">Rs. 8,4999</p>
+                      <p className="image-price">Rs. 8,499</p>
                     </Tilt>
                   </Col>
                   <Col md={4} data-aos="fade-up">
@@ -335,7 +335,7 @@ const navigate = useNavigate();
                         <div className="glossy-overlay"></div>
                       </div>
                       <p className="image-caption">Bits repeat (Green)</p>
-                      <p className="image-price">Rs. 8,4999</p>
+                      <p className="image-price">Rs. 8,499</p>
                     </Tilt>
                   </Col>
                   <Col md={4} data-aos="fade-left">
@@ -365,7 +365,7 @@ const navigate = useNavigate();
                         <div className="glossy-overlay"></div>
                       </div>
                       <p className="image-caption">It's feed time (Green)</p>
-                      <p className="image-price">Rs. 8,4999</p>
+                      <p className="image-price">Rs. 8,499</p>
                     </Tilt>
                   </Col>
                 </Row>
