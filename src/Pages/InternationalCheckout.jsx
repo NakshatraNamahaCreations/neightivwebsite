@@ -139,28 +139,28 @@ const InternationalCheckout = () => {
       setShippingQuote(shipmentResponse.data);
 
       // Step 2: Initiate PayPal Payment
-      // const tokenResponse = await axios.post('https://api.neightivglobal.com/api/paypal/token');
-      // const accessToken = tokenResponse.data.access_token;
+      const tokenResponse = await axios.post('https://api.neightivglobal.com/api/paypal/token');
+      const accessToken = tokenResponse.data.access_token;
 
-      // const orderResponse = await axios.post(
-      //   'https://api.neightivglobal.com/api/paypal/create-order',
-      //   {
-      //     amount: totalUSD,
-      //     currency_code: 'USD',
-      //     cartItems: cartItems.map((item) => {
-      //       const normalizedItem = normalizeItem(item);
-      //       return {
-      //         name: normalizedItem.name,
-      //         price: parseFloat((normalizedItem.totalPrice * exchangeRate).toFixed(2)),
-      //         quantity: normalizedItem.quantity,
-      //         sku: normalizedItem.id,
-      //       };
-      //     }),
-      //   },
-      //   {
-      //     headers: { Authorization: `Bearer ${accessToken}` },
-      //   }
-      // );
+      const orderResponse = await axios.post(
+        'https://api.neightivglobal.com/api/paypal/create-order',
+        {
+          amount: totalUSD,
+          currency_code: 'USD',
+          cartItems: cartItems.map((item) => {
+            const normalizedItem = normalizeItem(item);
+            return {
+              name: normalizedItem.name,
+              price: parseFloat((normalizedItem.totalPrice * exchangeRate).toFixed(2)),
+              quantity: normalizedItem.quantity,
+              sku: normalizedItem.id,
+            };
+          }),
+        },
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }
+      );
 
       const approvalLink = orderResponse.data.links.find((link) => link.rel === 'approve');
       if (approvalLink) {

@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import './HomePage.css';
 import Equestrian1 from '../../src/assets/Equestrian1.webp';
 import Equestrian2 from '../../src/assets/Equestrian2.webp';
+import bannerimage from '../../src/assets/Banner-imge-Neightiv_2.webp';
 import group from '../../src/assets/Group_7.png';
 import Image1 from '../../src/assets/image1.jpg';
 import Image2 from '../../src/assets/image2.jpg';
@@ -69,8 +70,10 @@ const navigate = useNavigate();
 
 
   return (
-    <div className="home-page">
+    <div className="home-page"  >
       {/* Banner Section */}
+
+      <div className='d-none d-lg-block'>
       <div className="banner-section" >
         <Container className="text-container">
           <Row>
@@ -100,6 +103,68 @@ const navigate = useNavigate();
           </Row>
         </Container>
       </div>
+      </div>
+          <div className="d-block d-lg-none">
+  <div>
+   <div className="mobile-banner" style={{ position: 'relative' }}>
+      <img 
+        src={bannerimage} 
+        alt="Equestrian Banner" 
+        style={{ width: '100%', height: 'auto' }} 
+      />
+      
+      {/* Quote positioned left on the image */}
+      <div 
+        style={{
+          position: 'absolute', 
+          left: '20px', 
+          bottom: '-2px', 
+          color: 'white', 
+          fontSize: '8px',
+          fontFamily: 'italic !important',
+          lineHeight: '1.6',
+          maxWidth: '90%'
+        }}
+      >
+        <p>
+          “The freedom in the reins, <br />
+          The belonging in your eyes, <br />
+          Felt so Neightiv to me, <br />
+          As time passed by”
+        </p>
+      </div>
+    </div>
+    <Container>
+      <Row style={{ backgroundColor: '#58322b',color:'white', padding: '20px 0' }}>
+        {/* Left Content Section */}
+        <Col md={6}>
+          <h1>Equestrian Inspired, <br /> Handcrafted with Love</h1>
+          <p>
+            Our fashion products are innovatively designed and intricately crafted, 
+            Truly must-have pieces in your wardrobe!
+          </p>
+          <Button style={{backgroundColor:'#f0dbc1', border:'1px solid #f0dbc1', color:'black'}}onClick={handleShopNowClick}>Shop Now</Button>
+        </Col>
+
+        {/* Right Content Section */}
+        {/* <Col md={6}>
+          <div>
+            <p>
+              “The freedom in the reins, <br />
+              The belonging in your eyes, <br />
+              Felt so Neightiv to me, <br />
+              As time passed by”
+            </p>
+          </div>
+        </Col> */}
+      </Row>
+    </Container>
+    
+   
+  </div>
+</div>
+
+    
 
       {/* Equestrian Inspired Fashion Section */}
 <section className="fashion-section" style={{overflow:'hidden'}}>
@@ -174,6 +239,7 @@ const navigate = useNavigate();
 </section>
 
 
+<div className="d-none d-lg-block">
 <section
       className="new-arrivals-section"
       style={{ backgroundColor: '#58322B', width: '100%', padding: '30px 0 50px 0' }}
@@ -390,6 +456,193 @@ const navigate = useNavigate();
         </Row>
       </Container>
     </section>
+</div>
+
+<div className="d-block d-lg-none">
+  <section
+    className="new-arrivals-section"
+    style={{ backgroundColor: '#58322B', width: '100%', padding: '30px 0 50px 0' }}
+  >
+    <Container>
+      <Row>
+        <Col md={12} className="text-center">
+          <h2 style={{ color: '#fff', marginBottom: '40px' }}>New Arrivals</h2>
+          
+             <Carousel
+            indicators={false}
+            interval={3000} // Auto-scroll every 3 seconds
+            controls={true}
+            pause="hover"
+            style={{
+              height: '', // Adjust the carousel to take 80% of the viewport height
+              display: 'flex',
+              alignItems: 'center',
+            }}
+          >
+
+             <Carousel.Item>
+              <div className="carousel-item-content" style={{ height: '100%' }}>
+                <div className="image-wrapper" style={{ height: '100%' }}>
+                  <img
+                    src={Image1}
+                    alt="New Arrival 1"
+                    className="arrival-image"
+                    style={{ objectFit: 'cover', width: '100%', height: '100%' }}
+                  />
+                  <div className="image-overlay">
+                    <img
+                      src={overlayMap[Image1]}
+                      alt="Overlay Image 1"
+                      className="arrival-image"
+                    />
+                  </div>
+                  <div className="glossy-overlay"></div>
+                </div>
+                <p className="image-caption">Entry to the tack room</p>
+                <p className="image-price">Rs. 8,499</p>
+              </div>
+            </Carousel.Item>
+
+            <Carousel.Item>
+              <div className="carousel-item-content" style={{ height: '100%' }}>
+                <div className="image-wrapper" style={{ height: '100%' }}>
+                  <img
+                    src={Image2}
+                    alt="New Arrival 1"
+                    className="arrival-image"
+                    style={{ objectFit: 'cover', width: '100%', height: '100%' }}
+                  />
+                  <div className="image-overlay">
+                    <img
+                      src={overlayMap[Image2]}
+                      alt="Overlay Image 1"
+                      className="arrival-image"
+                    />
+                  </div>
+                  <div className="glossy-overlay"></div>
+                </div>
+                <p className="image-caption">The grazing synergy</p>
+                <p className="image-price">Rs. 8,499</p>
+              </div>
+            </Carousel.Item>
+
+           <Carousel.Item>
+              <div className="carousel-item-content" style={{ height: '100%' }}>
+                <div className="image-wrapper" style={{ height: '100%' }}>
+                  <img
+                    src={Image3}
+                    alt="New Arrival 2"
+                    className="arrival-image"
+                    style={{ objectFit: 'cover', width: '100%', height: '100%' }}
+                  />
+                  <div className="image-overlay">
+                    <img
+                      src={overlayMap[Image3]}
+                      alt="Overlay Image 2"
+                      className="arrival-image"
+                    />
+                  </div>
+                  <div className="glossy-overlay"></div>
+                </div>
+                <p className="image-caption">Saddle power</p>
+                <p className="image-price">Rs. 8,499</p>
+              </div>
+            </Carousel.Item>
+
+
+            <Carousel.Item>
+              <div className="carousel-item-content" style={{ height: '100%' }}>
+                <div className="image-wrapper" style={{ height: '100%' }}>
+                  <img
+                    src={layout1}
+                    alt="New Arrival 3"
+                    className="arrival-image"
+                    style={{ objectFit: 'cover', width: '100%', height: '100%' }}
+                  />
+                  <div className="image-overlay">
+                    <img
+                      src={overlayMap[layout1]}
+                      alt="Overlay Image 3"
+                      className="arrival-image"
+                    />
+                  </div>
+                  <div className="glossy-overlay"></div>
+                </div>
+                <p className="image-caption">Saddles in Queue</p>
+                <p className="image-price">Rs. 8,499</p>
+              </div>
+            </Carousel.Item>
+
+             <Carousel.Item>
+              <div className="carousel-item-content" style={{ height: '100%' }}>
+                <div className="image-wrapper" style={{ height: '100%' }}>
+                  <img
+                    src={Image4}
+                    alt="New Arrival 3"
+                    className="arrival-image"
+                    style={{ objectFit: 'cover', width: '100%', height: '100%' }}
+                  />
+                  <div className="image-overlay">
+                    <img
+                      src={overlayMap[Image4]}
+                      alt="Overlay Image 3"
+                      className="arrival-image"
+                    />
+                  </div>
+                  <div className="glossy-overlay"></div>
+                </div>
+                <p className="image-caption">Bits repeat (Green)</p>
+                <p className="image-price">Rs. 8,499</p>
+              </div>
+            </Carousel.Item>
+
+            <Carousel.Item>
+              <div className="carousel-item-content" style={{ height: '100%' }}>
+                <div className="image-wrapper" style={{ height: '100%' }}>
+                  <img
+                    src={Image5}
+                    alt="New Arrival 3"
+                    className="arrival-image"
+                    style={{ objectFit: 'cover', width: '100%', height: '100%' }}
+                  />
+                  <div className="image-overlay">
+                    <img
+                      src={overlayMap[Image5]}
+                      alt="Overlay Image 3"
+                      className="arrival-image"
+                    />
+                  </div>
+                  <div className="glossy-overlay"></div>
+                </div>
+                <p className="image-caption">It's feed time (Green)</p>
+                <p className="image-price">Rs. 8,499</p>
+              </div>
+            </Carousel.Item>
+
+            
+            
+            {/* Add more items as needed */}
+          </Carousel>
+
+          <Button
+            onClick={handleShopNowClick}
+            style={{
+              marginTop: '-65px',
+              backgroundColor: '#FBEEDE',
+              color: '#58322B',
+              border: 'none',
+              padding: '10px 20px',
+            }}
+          >
+            Explore All
+          </Button>
+        </Col>
+      </Row>
+    </Container>
+  </section>
+</div>
+
+
 
 
 
@@ -452,7 +705,7 @@ const navigate = useNavigate();
                 lineHeight: '1.4',
                 fontWeight: '400',
                 // borderRadius: '4px',
-                marginTop: '-9%'
+                marginTop: '3%'
               }}
             >
               <div style={{ borderLeft: '2px solid #c2a78e', paddingLeft: '20px' }}>

@@ -213,6 +213,9 @@ import StoryImage1 from '../../src/assets/StoryImage1.webp';
 import AboutUsImage from '../assets/StoryImage1.webp';
 import bannerImage from '../assets/our-values-banner.webp';  
 import Footer from '../Components/Footer';
+import authenticity from '../assets/Authenticity.webp';
+import creative from '../assets/Creativity.webp';
+import quality from '../assets/Quality.webp';
 
 const AboutUs = () => {
   useEffect(() => {
@@ -221,7 +224,8 @@ const AboutUs = () => {
 
   return (
     <div className={styles.aboutRoot}>
-      <Container fluid className="p-0">
+      <div className='d-none d-lg-block'>
+<Container fluid className="p-0">
         <Row className="m-0">
           {/* Left Column: Background Color and Text */}
           <Col
@@ -253,6 +257,45 @@ const AboutUs = () => {
           </Col>
         </Row>
       </Container>
+      </div>
+
+        <div className='d-block d-lg-none'>
+<Container fluid className="p-0">
+        <Row className="m-0">
+          {/* Left Column: Background Color and Text */}
+          
+          {/* Right Column: Image */}
+          <Col md={6} className={`p-0 ${styles.rightCol}`}>
+            <h1 className={styles.heading}>
+                About Us
+              </h1>
+            <img
+              src={AboutUsImage}
+              alt="Custom Silk Scarves"
+              className={styles.heroImg}
+            />
+          </Col>
+          <Col
+            md={6}
+            className={`d-flex align-items-center justify-content-center text-light p-5 ${styles.leftCol}`}
+          >
+            <div>
+            
+              <p className={styles.lead}>
+                Neightiv is an equestrian inspired brand, founded in 2024. We specialize in crafting innovative fashion products and accessories for women and men who adore horses!
+              </p>
+              <p className={styles.lead}>
+                The brand’s primary goal is establishing and reaching a vibrant equestrian lovers community.
+              </p>
+              <p className={styles.lead}>
+                With intricate craftsmanship in its products, Neightiv aims to celebrate the magical experience between people and their horses. Our carefully-curated digital prints enhance the emotions involved in being a rider, or just simply being around horses.
+              </p>
+            </div>
+          </Col>
+        </Row>
+      </Container>
+      </div>
+      
 
       <section className={styles.storySection}>
         <Container>
@@ -342,8 +385,8 @@ const AboutUs = () => {
           </Row>
         </Container>
       </section>
-
-      <section className={styles.valuesSection}>
+<div className='d-none d-lg-block'>
+<section className={styles.valuesSection}>
         <Container>
           {/* Banner Image */}
           <div className={styles.valuesBannerWrap}>
@@ -355,6 +398,142 @@ const AboutUs = () => {
           </div>
         </Container>
       </section>
+</div>
+<div className='d-block d-lg-none'>
+<div className="our-values-section" style={{ backgroundColor: '#F8E4D1', padding: '30px 0' }}>
+  <Container>
+    <Row>
+      <Col md={12} className="text-center">
+        <h1 style={{ color: '#5A3C32', marginBottom: '40px' }}>Our Values</h1>
+        <Row className="values-row">
+          {/* First Value: Creativity */}
+          <Col xs={12} sm={6} md={4} className="value-item" style={{ marginBottom: '30px' }}>
+            <div
+              className="value-card"
+              style={{
+                padding: '20px',
+                backgroundColor: '#F8E4D1',
+                // borderRadius: '8px',
+                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                textAlign: 'center',
+                border: '1px solid #5A3C32', // Added box line (border)
+              }}
+            >
+              <div
+                className="value-icon"
+                style={{
+                  width: '60px',
+                  height: '60px',
+                  borderRadius: '50%',
+                  // backgroundColor: '#58322B',
+                  margin: '0 auto 20px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <img
+                  src={creative}// Replace with actual image path
+                  alt="Creativity"
+                  style={{ width: '60px', height: 'auto' }}
+                />
+              </div>
+              <h4 style={{ color: '#5A3C32', marginBottom: '10px' }}>Creativity</h4>
+              <p style={{ color: '#7A5C4F' }}>
+                We offer unique designs and customise creative services for our clients.
+              </p>
+            </div>
+          </Col>
+
+          {/* Second Value: Authenticity */}
+          <Col xs={12} sm={6} md={4} className="value-item" style={{ marginBottom: '30px' }}>
+            <div
+              className="value-card"
+              style={{
+                padding: '20px',
+                backgroundColor: '#F8E4D1',
+                // borderRadius: '8px',
+                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                textAlign: 'center',
+                border: '1px solid #5A3C32', // Added box line (border)
+              }}
+            >
+              <div
+                className="value-icon"
+                style={{
+                  width: '60px',
+                  height: '60px',
+                  borderRadius: '50%',
+                  // backgroundColor: '#58322B',
+                  margin: '0 auto 20px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <img
+                  src={authenticity}// Replace with actual image path
+                  alt="Authenticity"
+                  style={{ width: '60px', height: 'auto' }}
+                />
+              </div>
+              <h4 style={{ color: '#5A3C32', marginBottom: '10px' }}>Authenticity</h4>
+              <p style={{ color: '#7A5C4F' }}>
+                We believe in crafting each of our pieces with utmost authenticity for our customers.
+              </p>
+            </div>
+          </Col>
+
+              <Col xs={12} sm={6} md={4} className="value-item" style={{ marginBottom: '30px' }}>
+            <div
+              className="value-card"
+              style={{
+                padding: '20px',
+                backgroundColor: '#F8E4D1',
+                // borderRadius: '8px',
+                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                textAlign: 'center',
+                border: '1px solid #5A3C32', // Added box line (border)
+              }}
+            >
+              <div
+                className="value-icon"
+                style={{
+                  width: '60px',
+                  height: '60px',
+                  borderRadius: '50%',
+                  // backgroundColor: '#58322B',
+                  margin: '0 auto 20px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <img
+                  src={quality}// Replace with actual image path
+                  alt="Authenticity"
+                  style={{ width: '60px', height: 'auto' }}
+                />
+              </div>
+              <h4 style={{ color: '#5A3C32', marginBottom: '10px' }}>Quality</h4>
+              <p style={{ color: '#7A5C4F' }}>
+              We are committed to providing the best quality products. Our products are made with utmost precision!
+              </p>
+            </div>
+          </Col>
+
+          {/* Add more values if needed */}
+        </Row>
+      </Col>
+    </Row>
+  </Container>
+</div>
+
+
+
+
+</div>
+      
 
       <Footer />
     </div>

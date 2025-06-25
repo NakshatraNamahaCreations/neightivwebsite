@@ -122,22 +122,41 @@ const footerRef = useRef(null);
     if (quantity > 1) setQuantity(quantity - 1);
   };
 
+  // const handleAddToCart = () => {
+  //   if (product) {
+  //     const priceWithTax = calculatePriceWithTax(product.amount);
+  //     addToCart(
+  //       {
+  //         id: product._id,
+  //         name: product.name,
+  //         price: priceWithTax,
+  //         sku: product.sku,
+  //         image: `https://api.neightivglobal.com${product.images[0]}`,
+  //       },
+  //       quantity
+  //     );
+  //     navigate("/cart");
+  //   }
+  // };
+
   const handleAddToCart = () => {
-    if (product) {
-      const priceWithTax = calculatePriceWithTax(product.amount);
-      addToCart(
-        {
-          id: product._id,
-          name: product.name,
-          price: priceWithTax,
-          sku: product.sku,
-          image: `https://api.neightivglobal.com${product.images[0]}`,
-        },
-        quantity
-      );
-      navigate("/cart");
-    }
-  };
+  if (product) {
+    const priceWithTax = calculatePriceWithTax(product.amount);
+    const newItem = {
+      id: product._id,
+      name: product.name,
+      price: priceWithTax,
+      sku: product.sku,
+      image: `https://api.neightivglobal.com${product.images[0]}`,
+    };
+    addToCart(newItem, quantity);
+    // Delay navigation to ensure state update
+    setTimeout(() => {
+      console.log('ProductDescription: Navigating to cart after adding', newItem);
+      navigate('/cart');
+    }, 0); // Use setTimeout to push navigation to the next event loop
+  }
+};
 
   const toggleDescription = () => setIsDescriptionOpen(!isDescriptionOpen);
   const toggleMaterialCare = () => setIsMaterialCareOpen(!isMaterialCareOpen);
@@ -540,7 +559,7 @@ const footerRef = useRef(null);
                       fluid
                       style={{
                         width: "100%",
-                        height: "400px",
+                        // height: "400px",
                         objectFit: "cover",
                       }}
                     />
