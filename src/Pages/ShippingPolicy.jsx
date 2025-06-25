@@ -103,7 +103,7 @@ const ShippingPolicy = () => {
                 📞 <strong>Customer Care:</strong> +91-7338451937
               </p>
               <p style={{ color: '#3d1e19', fontSize: '16px', marginBottom: '10px' }}>
-                📬 Or use the <a href="/contact" style={{ color: '#000', textDecoration: 'underline' }}>Contact Us</a> page on our website.
+                📬 Or use the <a href="/contactus" style={{ color: '#000', textDecoration: 'underline' }}>Contact Us</a> page on our website.
               </p>
             </Col>
           </Row>

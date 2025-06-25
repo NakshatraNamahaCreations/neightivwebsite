@@ -255,154 +255,262 @@ const Footer = () => {
         `}
       </style>
     </footer>
-     <footer
-      className="d-block d-lg-none"
+    <footer
+  className="d-block d-lg-none"
+  style={{
+    backgroundColor: '#5b342d',
+    color: '#FBEEDE',
+    padding: '20px 0',
+    fontFamily: 'Lora, serif',
+  }}
+>
+  <Container>
+    {/* Instagram Link */}
+    <Row className="mb-3">
+      <Col className="text-center">
+        <a
+          href="https://www.instagram.com/neightiv.official/"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            color: '#FBEEDE',
+            textDecoration: 'none',
+            fontSize: '20px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <FaInstagram size={20} style={{ marginRight: '10px', color: '#FBEEDE' }} />
+          Follow us on Instagram
+        </a>
+      </Col>
+    </Row>
+
+    {/* Divider */}
+    <Row>
+      <Col>
+        <hr style={{ borderColor: '#FBEEDE', opacity: 0.2, margin: '20px 0' }} />
+      </Col>
+    </Row>
+
+    {/* Navigation Links */}
+    {/* <Row>
+      <Col>
+        {['Shop', 'Custom Scarves', 'Our World', 'About Us', 'Contact Us'].map((link, index) => (
+          <a
+            key={index}
+            href={`/${link.toLowerCase().replace(' ', '-')}`}
+            style={{
+              display: 'block',
+              width: '100%',
+              fontSize: '20px',
+              color: '#FBEEDE',
+              backgroundColor: '#5b342d',
+              textAlign: 'center',
+              textDecoration: 'none',
+            }}
+          >
+            {link}
+          </a>
+        ))}
+      </Col>
+      <Col>
+        {['Cancellation Policy', 'Refund Policy', 'Privacy Policy'].map((link, index) => (
+          <a
+            key={index}
+            href={`/${link.toLowerCase().replace(' ', '-')}`}
+            style={{
+              display: 'block',
+              width: '100%',
+              fontSize: '20px',
+              color: '#FBEEDE',
+              backgroundColor: '#5b342d',
+              textAlign: 'center',
+              textDecoration: 'none',
+            }}
+          >
+            {link}
+          </a>
+        ))}
+      </Col>
+    </Row> */}
+
+    <Row>
+  {/* First Column - Navigation Links */}
+  <Col className="text-center">
+    <a
+      href="/shop"
       style={{
-        backgroundColor: '#5b342d',
+        display: 'block',
+        width: '100%',
+        fontSize: '20px',
         color: '#FBEEDE',
-        padding: '20px 0',
-        fontFamily: 'Lora, serif',
+        backgroundColor: '#5b342d',
+        textAlign: 'center',
+        textDecoration: 'none',
+        // padding: '10px',
       }}
     >
-      <Container>
-        {/* Instagram Link */}
-        <Row className="mb-3">
-          <Col className="text-center">
-            <a
-              href="https://www.instagram.com/neightiv.official/"
-              target="_blank"
-              rel="noopener noreferrer"
+      Shop
+    </a>
+    <a
+      href="/customprints"
+      style={{
+        display: 'block',
+        width: '100%',
+        fontSize: '20px',
+        color: '#FBEEDE',
+        backgroundColor: '#5b342d',
+        textAlign: 'center',
+        textDecoration: 'none',
+        // padding: '10px',
+      }}
+    >
+      Custom Scarves
+    </a>
+    <a
+      href="/ourworld"
+      style={{
+        display: 'block',
+        width: '100%',
+        fontSize: '20px',
+        color: '#FBEEDE',
+        backgroundColor: '#5b342d',
+        textAlign: 'center',
+        textDecoration: 'none',
+        // padding: '10px',
+      }}
+    >
+      Our World
+    </a>
+    <a
+      href="/about-us"
+      style={{
+        display: 'block',
+        width: '100%',
+        fontSize: '20px',
+        color: '#FBEEDE',
+        backgroundColor: '#5b342d',
+        textAlign: 'center',
+        textDecoration: 'none',
+        // padding: '10px',
+      }}
+    >
+      About Us
+    </a>
+    <a
+      href="/contactus"
+      style={{
+        display: 'block',
+        width: '100%',
+        fontSize: '20px',
+        color: '#FBEEDE',
+        backgroundColor: '#5b342d',
+        textAlign: 'center',
+        textDecoration: 'none',
+        // padding: '10px',
+      }}
+    >
+      Contact Us
+    </a>
+  </Col>
+
+  {/* Second Column - Terms and Conditions Links */}
+  <Col className="text-center">
+    <a
+      href="/canellation-policy"
+      style={{
+        display: 'block',
+        width: '100%',
+        fontSize: '20px',
+        color: '#FBEEDE',
+        backgroundColor: '#5b342d',
+        textAlign: 'center',
+        textDecoration: 'none',
+        // padding: '10px',
+      }}
+    >
+      Cancellation Policy
+    </a>
+    <a
+      href="/terms-and-conditions"
+      style={{
+        display: 'block',
+        width: '100%',
+        fontSize: '20px',
+        color: '#FBEEDE',
+        backgroundColor: '#5b342d',
+        textAlign: 'center',
+        textDecoration: 'none',
+        // padding: '10px',
+      }}
+    >
+      Terms and Conditions
+    </a>
+    <a
+      href="/privacy-policy"
+      style={{
+        display: 'block',
+        width: '100%',
+        fontSize: '20px',
+        color: '#FBEEDE',
+        backgroundColor: '#5b342d',
+        textAlign: 'center',
+        textDecoration: 'none',
+        // padding: '10px',
+      }}
+    >
+      Privacy Policy
+    </a>
+  </Col>
+</Row>
+
+
+
+
+    {/* Divider */}
+    <Row>
+      <Col>
+        <hr style={{ borderColor: '#FBEEDE', opacity: 0.2, margin: '20px 0' }} />
+      </Col>
+    </Row>
+
+    
+
+    {/* Copyright and Payment Icons */}
+    <Row>
+      <Col className="text-center mb-3">
+        <p style={{ fontSize: '14px', margin: '0' }}>© 2025 NEIGHTIV. All Rights Reserved</p>
+      </Col>
+    </Row>
+
+    <Row>
+      <Col className="text-center">
+        <div className="d-flex justify-content-center gap-2 flex-wrap">
+          {[{ src: paypal, alt: 'PayPal' }, { src: visa, alt: 'Visa' }, { src: threeimage, alt: 'MasterCard' }, { src: applepay, alt: 'Apple Pay' }, { src: stripe, alt: 'Stripe' }].map((item, index) => (
+            <div
+              key={index}
               style={{
-                color: '#FBEEDE',
-                textDecoration: 'none',
-                fontSize: '20px',
+                backgroundColor: '#FBEEDE',
+                padding: '10px 12px',
+                borderRadius: '10px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
+                height: '40px',
+                width: '60px',
               }}
             >
-              <FaInstagram size={20} style={{ marginRight: '10px', color: '#FBEEDE' }} />
-              Follow us on Instagram
-            </a>
-          </Col>
-        </Row>
-
-        {/* NEIGHTIV and Back to Top
-        <Row className="mb-4 text-center">
-          <Col>
-            <div style={{ fontSize: '36px', fontWeight: 'bold', marginBottom: '10px' }}>NEIGHTIV</div>
-            <a
-              href="#top"
-              style={{
-                color: '#FBEEDE',
-                textDecoration: 'none',
-                fontSize: '14px',
-                display: 'block',
-              }}
-            >
-              Back to Top ↑
-            </a>
-          </Col>
-        </Row> */}
-
-        {/* Divider */}
-        <Row>
-          <Col>
-            <hr style={{ borderColor: '#FBEEDE', opacity: 0.2, margin: '20px 0' }} />
-          </Col>
-        </Row>
-
-        {/* Navigation Links */}
-        <Row>
-          <Col>
-            {['Shop', 'Custom Prints', 'Our World', 'About Us', 'Contact Us'].map((link, index) => (
-              <a
-                key={index}
-                href={`/${link.toLowerCase().replace(' ', '-')}`}
-                style={{
-                  display: 'block',
-                  width: '100%',
-                  fontSize:'20px',
-                  // padding: '10px',
-                  color: '#FBEEDE',
-                  backgroundColor: '#5b342d',
-                  textAlign: 'center',
-                  // borderBottom: '1px solid #FBEEDE',
-                  textDecoration: 'none',
-                }}
-              >
-                {link}
-              </a>
-            ))}
-          </Col>
-          <Col>
-            {['Cancellation Policy', 'Refund Policy', 'Privacy Policy'].map((link, index) => (
-              <a
-                key={index}
-                href={`/${link.toLowerCase().replace(' ', '-')}`}
-                style={{
-                  display: 'block',
-                  width: '100%',
-                  // padding: '10px',
-                    fontSize:'20px',
-                  color: '#FBEEDE',
-                  backgroundColor: '#5b342d',
-                  textAlign: 'center',
-                  // borderBottom: '1px solid #FBEEDE',
-                  textDecoration: 'none',
-                }}
-              >
-                {link}
-              </a>
-            ))}
-          </Col>
-        </Row>
-
-        {/* Divider */}
-        <Row>
-          <Col>
-            <hr style={{ borderColor: '#FBEEDE', opacity: 0.2, margin: '20px 0' }} />
-          </Col>
-        </Row>
-
-        {/* Copyright and Payment Icons */}
-        <Row>
-          <Col className="text-center mb-3">
-            <p style={{ fontSize: '14px', margin: '0' }}>© 2025 NEIGHTIV. All Rights Reserved</p>
-          </Col>
-        
-        </Row>
-        <Row>
-            <Col className="text-center">
-            <div className="d-flex justify-content-center gap-2 flex-wrap">
-              {[
-                { src: paypal, alt: 'PayPal' },
-                { src: visa, alt: 'Visa' },
-                { src: threeimage, alt: 'MasterCard' },
-                { src: applepay, alt: 'Apple Pay' },
-                { src: stripe, alt: 'Stripe' },
-              ].map((item, index) => (
-                <div
-                  key={index}
-                  style={{
-                    backgroundColor: '#FBEEDE',
-                    padding: '10px 12px',
-                    borderRadius: '10px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    height: '40px',
-                    width: '60px',
-                  }}
-                >
-                  <img src={item.src} alt={item.alt} style={{ maxHeight: '20px', maxWidth: '100%' }} />
-                </div>
-              ))}
+              <img src={item.src} alt={item.alt} style={{ maxHeight: '20px', maxWidth: '100%' }} />
             </div>
-          </Col>
-        </Row>
-      </Container>
-    </footer>
+          ))}
+        </div>
+      </Col>
+    </Row>
+  </Container>
+</footer>
+
     </div>
   );
 };

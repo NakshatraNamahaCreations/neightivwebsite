@@ -767,6 +767,7 @@ const navigate = useNavigate();
             </p>
 
             <div
+            onClick={handleShopNowClick}
               data-aos="zoom-in-up"
               style={{
                 backgroundColor: '#5b342d',
@@ -790,6 +791,7 @@ const navigate = useNavigate();
 </section>
 
 
+<div className='d-none d-lg-block'>
 <section style={{ backgroundColor: '#58322B', width: '100%', padding: '50px 0', overflow:'hidden' }}>
   <Container fluid>
     <Row>
@@ -845,6 +847,7 @@ const navigate = useNavigate();
               World through<br />our lenses
             </h3>
             <Button
+onClick={handleShopNowClick}
               style={{
                 backgroundColor: '#fff5e4',
                 color: '#5b342d',
@@ -904,6 +907,122 @@ const navigate = useNavigate();
     </Row>
   </Container>
 </section>
+</div>
+
+<div className='d-block d-lg-none'>
+  <section style={{ backgroundColor: '#58322B', width: '100%', padding: '50px 0', overflow: 'hidden' }}>
+    <Container fluid>
+      <Row>
+        {/* Left: Image1 + Image5 */}
+        <Col xs={12} className="d-flex flex-column justify-content-between mb-4">
+          <img
+            src={Image11}
+            alt="Image1"
+            data-aos="fade-right"
+            style={{
+              width: '100%',
+              height: '250px',
+              objectFit: 'cover',
+              marginBottom: '15px',
+            }}
+          />
+          <img
+            src={Image51}
+            alt="Image5"
+            data-aos="fade-right"
+            data-aos-delay="200"
+            style={{
+              width: '100%',
+              height: '200px',
+              objectFit: 'cover',
+            }}
+          />
+        </Col>
+
+        {/* Center: Image2 + Text + Image6 */}
+        <Col xs={12} className="d-flex flex-column justify-content-between mb-4">
+          <img
+            src={Image21}
+            alt="Image2"
+            data-aos="fade-up"
+            style={{
+              width: '100%',
+              height: '200px',
+              objectFit: 'cover',
+              marginBottom: '15px',
+            }}
+          />
+
+          <div
+            data-aos="zoom-in-up"
+            className="d-flex align-items-center justify-content-center"
+            style={{ backgroundColor: '#5b342d', height: '150px' }}
+          >
+            <div className="text-center">
+              <h3 style={{ color: '#fff', fontSize: '22px', fontWeight: 'bold', marginBottom: '10px' }}>
+                World through<br />our lenses
+              </h3>
+              <Button
+                onClick={handleShopNowClick}
+                style={{
+                  backgroundColor: '#fff5e4',
+                  color: '#5b342d',
+                  border: 'none',
+                  padding: '6px 16px',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                }}
+              >
+                Explore All
+              </Button>
+            </div>
+          </div>
+
+          <img
+            src={Image61}
+            alt="Image6"
+            data-aos="fade-up"
+            data-aos-delay="200"
+            style={{
+              width: '100%',
+              height: '200px',
+              objectFit: 'cover',
+              marginTop: '15px',
+            }}
+          />
+        </Col>
+
+        {/* Right: Image3 + Image4 */}
+        <Col xs={12} className="d-flex flex-column justify-content-between">
+          <img
+            src={Image31}
+            alt="Image3"
+            data-aos="fade-left"
+            style={{
+              width: '100%',
+              height: '200px',
+              objectFit: 'cover',
+              marginBottom: '15px',
+            }}
+          />
+          <img
+            src={Image41}
+            alt="Image4"
+            data-aos="fade-left"
+            data-aos-delay="200"
+            style={{
+              width: '100%',
+              height: '250px',
+              objectFit: 'cover',
+            }}
+          />
+        </Col>
+      </Row>
+    </Container>
+  </section>
+</div>
+
+
 
 
 

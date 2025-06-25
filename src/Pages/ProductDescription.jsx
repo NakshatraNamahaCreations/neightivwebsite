@@ -487,7 +487,7 @@ const footerRef = useRef(null);
                     </li>
                     <li>
                       <Link
-                        to="/return-policy"
+                        to="/exchange-policy"
                         style={{
                           color: "#000",
                           fontSize: "18px",
@@ -497,7 +497,7 @@ const footerRef = useRef(null);
                         <span style={{ textDecoration: "underline" }}>
                           Click here
                         </span>{" "}
-                        for our Return Policy
+                        for our Exchange Policy
                       </Link>
                     </li>
                   </ul>

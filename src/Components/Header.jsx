@@ -301,7 +301,7 @@ const Header = ({ country, onCountryChange }) => {
                   textDecoration: 'none',
                 }}
               >
-                Custom Prints
+                Custom Scarves
               </Nav.Link>
               <Nav.Link
                 href="/ourworld"
