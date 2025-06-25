@@ -210,7 +210,7 @@ import 'aos/dist/aos.css';
 import styles from '../stylesheets/Aboutus.module.css';
 import StoryImage3 from '../../src/assets/StoryImage3.webp';
 import StoryImage1 from '../../src/assets/StoryImage1.webp';
-import AboutUsImage from '../assets/StoryImage1.webp';
+import AboutUsImage from '../assets/Aboutus.webp';
 import bannerImage from '../assets/our-values-banner.webp';  
 import Footer from '../Components/Footer';
 import authenticity from '../assets/Authenticity.webp';
@@ -266,9 +266,7 @@ const AboutUs = () => {
           
           {/* Right Column: Image */}
           <Col md={6} className={`p-0 ${styles.rightCol}`}>
-            <h1 className={styles.heading}>
-                About Us
-              </h1>
+            
             <img
               src={AboutUsImage}
               alt="Custom Silk Scarves"
@@ -280,7 +278,9 @@ const AboutUs = () => {
             className={`d-flex align-items-center justify-content-center text-light p-5 ${styles.leftCol}`}
           >
             <div>
-            
+            <h1 className={styles.heading}>
+                About Us
+              </h1>
               <p className={styles.lead}>
                 Neightiv is an equestrian inspired brand, founded in 2024. We specialize in crafting innovative fashion products and accessories for women and men who adore horses!
               </p>
