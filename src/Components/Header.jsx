@@ -14,7 +14,8 @@ const Header = ({ country, onCountryChange }) => {
     .sort((a, b) => a.name.localeCompare(b.name));
 
   return (
-    <div>
+    <>
+     <div className='d-none d-lg-block'>
       {/* Country dropdown fixed at the top */}
       <div
         style={{
@@ -141,6 +142,152 @@ const Header = ({ country, onCountryChange }) => {
         </Container>
       </Navbar>
     </div>
+<div className="d-block d-lg-none">
+  {/* Country Dropdown in Mobile View */}
+  <div
+    style={{
+      backgroundColor: '#4a3728',
+      color: '#FBEEDE',
+      padding: '5px 20px',
+      fontSize: '14px',
+      position: 'relative',
+      zIndex: 1050,
+    }}
+  >
+    <Form.Select
+      size="sm"
+      value={country || ''}
+      onChange={(e) => {
+        console.log('Header: Selected country:', e.target.value);
+        onCountryChange(e.target.value);
+      }}
+      style={{
+        width: '50%',
+        marginLeft: 'auto',
+        backgroundColor: '#FBEEDE',
+        color: '#4a3728',
+        border: '1px solid #d3b9a3',
+        zIndex: 1050,
+      }}
+    >
+      <option value="">Select Country</option>
+      {countries.map((c) => (
+        <option key={c.code} value={c.code}>
+          {c.name} ({c.code})
+        </option>
+      ))}
+    </Form.Select>
+  </div>
+
+  <Navbar
+    expand="lg"
+    style={{
+      backgroundColor: '#FBEEDE',
+      padding: '10px 0',
+      height: '60px',
+      position: 'relative',
+      zIndex: 1000,
+    }}
+  >
+    <Container fluid>
+      {/* Cart Icon (Left) */}
+      <Nav.Link
+        href="/cart"
+        style={{
+          position: 'absolute',
+          left: '10px', // Adjust left position as needed
+          top: '50%',
+          transform: 'translateY(-50%)',
+          // color: '#FBEEDE',
+          zIndex: 1100,
+        }}
+      >
+        <FaShoppingCart />
+      </Nav.Link>
+
+      {/* Logo (Center) */}
+      <div
+        style={{
+          position: 'absolute',
+          top: '10px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 1100,
+          pointerEvents: 'auto',
+        }}
+      >
+        <Navbar.Brand
+          href="/"
+          style={{
+            padding: 0,
+          }}
+        >
+          <img
+            src={Logo}
+            alt="NEIGHTIV Logo"
+            style={{ height: '30px', objectFit: 'contain' }}
+          />
+        </Navbar.Brand>
+      </div>
+
+      {/* Mobile Navbar Toggle Button (Right) */}
+      <Navbar.Toggle
+        aria-controls="basic-navbar-nav"
+        style={{
+          backgroundColor: '#4a3728',
+          border: 'none',
+          marginLeft: 'auto',
+          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30' width='30' height='30'%3E%3Cpath stroke='rgba(255, 255, 255, 1)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E")`,
+          backgroundSize: '25px 25px',
+          width: '40px',
+          height: '40px',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          WebkitAppearance: 'none',
+          MozAppearance: 'none',
+          appearance: 'none',
+          position: 'absolute',
+          right: '10px', // Position toggle on the right
+          top: '50%',
+          transform: 'translateY(-50%)',
+        }}
+      />
+      <Navbar.Collapse
+        id="basic-navbar-nav"
+        style={{
+          backgroundColor: '#4a3728',
+          padding: '10px',
+          zIndex: 1000,
+          position: 'absolute',
+          top: '60px',
+          width: '100%',
+        }}
+      >
+        <Nav className="ms-auto" style={{ width: '100%' }}>
+          <Nav.Link href="/shop" style={{ color: '#FBEEDE' }}>
+            Shop
+          </Nav.Link>
+          <Nav.Link href="/customprints" style={{ color: '#FBEEDE' }}>
+            Custom Scarves
+          </Nav.Link>
+          <Nav.Link href="/contactus" style={{ color: '#FBEEDE' }}>
+            Contact Us
+          </Nav.Link>
+          <Nav.Link href="/about-us" style={{ color: '#FBEEDE' }}>
+            About Us
+          </Nav.Link>
+          <Nav.Link href="/ourworld" style={{ color: '#FBEEDE' }}>
+            Our World
+          </Nav.Link>
+        </Nav>
+      </Navbar.Collapse>
+    </Container>
+  </Navbar>
+</div>
+
+
+    </>
+   
   );
 };
 

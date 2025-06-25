@@ -1,0 +1,220 @@
+.aboutRoot {
+  background-color: #58322B;
+}
+
+.leftCol {
+  background-color: #4A2E2A !important;
+  min-height: 400px;
+  font-family: 'Lora', serif;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rightCol {
+  min-height: 400px;
+}
+
+.heroImg {
+  min-height: 400px;
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.heading {
+  color: #FFF5E4;
+  font-size: 34px;
+  font-weight: 500;
+  margin-bottom: 20px;
+  font-family: 'Lora', serif;
+}
+
+.lead {
+  color: #FFF5E4;
+  font-size: 18px;
+  line-height: 1.6;
+}
+
+.storySection {
+  background-color: #FFF5E4;
+  width: 100%;
+  padding: 50px 0;
+  overflow: hidden;
+}
+
+.storyHeading {
+  color: #58322B;
+  font-weight: bold;
+  margin-bottom: 20px;
+  font-size: 36px;
+  text-align: left;
+}
+
+.storyCol {
+  margin-bottom: 24px;
+}
+
+.storyText {
+  color: #58322B;
+  font-size: 20px;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.storyImg {
+  width: 100%;
+  max-height: 300px;
+  object-fit: cover;
+  margin-top: 40px;
+  border-radius: 5px;
+}
+
+.brandLaunchText {
+  color: #58322B;
+  font-size: 16px;
+  line-height: 1.6;
+  margin-top: 40px;
+  padding: 20px 30px;
+  border-radius: 8px;
+  display: inline-block;
+  box-sizing: border-box;
+  background: #fbeede;
+}
+
+.poemBox {
+  background-color: #fce8d8;
+  padding: 40px 30px;
+  font-family: 'Georgia', serif;
+  color: #3f2c1e;
+  font-size: 14px;
+  line-height: 1.4;
+  font-weight: 400;
+  border-radius: 4px;
+  margin-top: 0;
+}
+
+.poemBorder {
+  border-left: 2px solid #c2a78e;
+  padding-left: 20px;
+}
+
+.poemText {
+  margin-bottom: 20px;
+  white-space: pre-line;
+}
+
+.poemAuthor {
+  font-weight: bold;
+  text-align: right;
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+.storyTextSmall {
+  color: #58322B;
+  font-size: 16px;
+  line-height: 1.6;
+  margin-top: 40px;
+}
+
+.storyImgLarge {
+  width: 100%;
+  max-height: 400px;
+  object-fit: cover;
+  margin-top: 40px;
+  border-radius: 5px;
+}
+
+.valuesSection {
+  background-color: #fbeede;
+  padding: 60px 0;
+}
+
+.valuesBannerWrap {
+  margin-bottom: 40px;
+}
+
+.valuesBanner {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+/* Responsive Styles */
+@media (max-width: 991.98px) {
+  .leftCol,
+  .rightCol {
+    min-height: 220px;
+    padding: 2rem 1rem !important;
+  }
+  .heading {
+    font-size: 1.7rem;
+  }
+  .storyHeading {
+    font-size: 2rem;
+  }
+  .storyText {
+    font-size: 1.1rem;
+  }
+  .brandLaunchText,
+  .storyTextSmall {
+    font-size: 1rem;
+    padding: 12px 10px;
+    margin-top: 24px;
+  }
+  .poemBox {
+    padding: 20px 10px;
+    font-size: 13px;
+  }
+  .storyImg,
+  .storyImgLarge {
+    margin-top: 20px;
+    max-height: 200px;
+  }
+  .valuesSection {
+    padding: 30px 0;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .leftCol,
+  .rightCol {
+    min-height: 120px;
+    padding: 1rem 0.5rem !important;
+  }
+  .heading {
+    font-size: 1.2rem;
+  }
+  .storyHeading {
+    font-size: 1.1rem;
+  }
+  .storyText,
+  .brandLaunchText,
+  .storyTextSmall {
+    font-size: 0.95rem;
+    padding: 8px 2px;
+    margin-top: 12px;
+  }
+  .poemBox {
+    padding: 10px 4px;
+    font-size: 12px;
+  }
+  .poemBorder {
+    padding-left: 8px;
+  }
+  .storyImg,
+  .storyImgLarge {
+    margin-top: 10px;
+    max-height: 120px;
+  }
+  .valuesSection {
+    padding: 15px 0;
+  }
+  .valuesBannerWrap {
+    margin-bottom: 16px;
+  }
+}

@@ -1,0 +1,159 @@
+.heroSection {
+  background-color: #4A2E2A !important;
+  min-height: 300px;
+  text-align: center;
+}
+
+.heroText {
+  font-size: 2rem;
+  font-family: 'Lora', serif;
+  font-weight: normal;
+  line-height: 1.5;
+  color: #FBEEDE;
+  margin-top: 2%;
+}
+
+.worldContainer {
+  background-color: #fbeede;
+  padding: 0 3rem !important;
+  padding-top: 2rem !important;
+  padding-bottom: 2rem !important;
+}
+
+.rowPad {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.mediaCol {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mediaImg {
+  width: 100%;
+  max-width: 800px;
+  height: 350px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.mediaImgTall {
+  width: 100%;
+  max-width: 800px;
+  height: 400px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.mediaImgLarge {
+  width: 100%;
+  max-width: 800px;
+  height: 600px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.fullImg {
+  width: 100%;
+  height: 400px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.poemText {
+  font-size: 1.2rem;
+  font-family: 'Lora', serif;
+  color: #58322b;
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+.poemTextLarge {
+  font-size: 1.3rem;
+  font-weight: 500;
+}
+
+.poemTitle {
+  font-weight: 550;
+  font-family: 'Lora', serif;
+  color: #58322b;
+  font-size: 1.4rem;
+  margin-bottom: 0.5rem;
+}
+
+.poemBody {
+  white-space: pre-line;
+  font-size: 1.1rem;
+  font-family: 'Lora', serif;
+  color: #58322b;
+  line-height: 1.3;
+  font-weight: 400;
+}
+
+.poemAuthor {
+  font-weight: 400;
+  font-size: 1.2rem;
+  font-family: 'Lora', serif;
+  color: #58322b;
+  margin-top: 0.5rem;
+}
+
+/* Responsive Styles */
+@media (max-width: 991.98px) {
+  .heroText {
+    font-size: 1.3rem;
+  }
+  .mediaImg,
+  .mediaImgTall,
+  .mediaImgLarge,
+  .fullImg {
+    max-width: 100%;
+    height: 200px;
+  }
+  .worldContainer {
+    padding: 0 0.5rem !important;
+    padding-top: 1rem !important;
+    padding-bottom: 1rem !important;
+  }
+  .poemText,
+  .poemTextLarge,
+  .poemTitle,
+  .poemBody,
+  .poemAuthor {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .heroSection {
+    min-height: 120px;
+    padding: 1rem 0.5rem !important;
+  }
+  .heroText {
+    font-size: 1rem;
+    margin-top: 0;
+  }
+  .mediaImg,
+  .mediaImgTall,
+  .mediaImgLarge,
+  .fullImg {
+    height: auto;
+    /* border-radius: 4px; */
+  }
+  .rowPad {
+    padding-left: 0.2rem;
+    padding-right: 0.2rem;
+  }
+  .poemText,
+  .poemTextLarge,
+  .poemTitle,
+  .poemBody,
+  .poemAuthor {
+    font-size: 0.95rem;
+  }
+  .mediaImg{
+    height: auto;
+  }
+}

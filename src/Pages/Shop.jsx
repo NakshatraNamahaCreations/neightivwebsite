@@ -105,7 +105,7 @@ const Shop = () => {
         `}
       </style>
 
-      <div style={{ backgroundColor: '#fff', padding: '80px 0', marginTop: '100px' }}>
+      <div className='shopContainer'>
         <Container>
           <Row className="justify-content-between align-items-center mb-4 px-3">
             <Col md="auto">

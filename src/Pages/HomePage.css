@@ -70,6 +70,63 @@
   margin-bottom: 15px; /* Space before the author line */
 }
 
+
+/* Media Query for Tablet and Mobile (max-width: 768px) */
+@media (max-width: 768px) {
+  .banner-section {
+    padding: 20px 0;
+  }
+
+  .text-container {
+    padding: 0 15px;
+  }
+
+  Row {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  Col {
+    margin-bottom: 20px;
+    padding: 0;
+  }
+
+  h1 {
+    font-size: 28px;
+  }
+
+  p {
+    font-size: 14px;
+  }
+
+  .shop-now-btn {
+    padding: 8px 16px;
+    font-size: 14px;
+  }
+
+  .quote-section {
+    padding: 15px;
+    margin-top: 20px;
+  }
+
+  .quote-text {
+    font-size: 16px;
+    margin-top: -61%;
+  }
+}
+
+/* Media Query for Small Mobile (max-width: 480px) */
+@media (max-width: 480px) {
+  h1 {
+    font-size: 24px;
+  }
+
+  .quote-text {
+    font-size: 14px;
+    margin-top: -61%;
+  }
+}
+
 /* Equestrian Inspired Fashion Section */
 .fashion-section {
   background-color: #fbeede; /* Matches the overall page background */
@@ -144,6 +201,63 @@
  list-style-type: disc; 
   line-height: 1; 
   font-family: 'Lora', serif; 
+}
+
+/* Media Query for Tablet and Mobile (max-width: 768px) */
+@media (max-width: 768px) {
+  .fashion-section {
+    padding: 40px 0;
+  }
+
+  h2 {
+    font-size: 28px;
+  }
+
+  .subheading {
+    font-size: 16px;
+    margin-bottom: 30px;
+  }
+
+  .image-container {
+    padding: 10px;
+  }
+
+  .fashion-image {
+    width: 100%;
+  }
+
+  .overlay-text {
+    bottom: 15px;
+  }
+
+  .square-text {
+    font-size: 14px;
+    padding: 4px 8px;
+  }
+}
+
+/* Media Query for Small Mobile (max-width: 480px) */
+@media (max-width: 480px) {
+  h2 {
+    font-size: 24px;
+  }
+
+  .subheading {
+    font-size: 14px;
+  }
+
+  .divider-logo {
+    max-width: auto;
+  }
+
+  .overlay-text {
+    bottom: 10px;
+  }
+
+  .square-text {
+    font-size: 12px;
+    padding: 3px 6px;
+  }
 }
 
 .scarves-text {

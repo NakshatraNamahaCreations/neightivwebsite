@@ -71,7 +71,7 @@ const navigate = useNavigate();
   return (
     <div className="home-page">
       {/* Banner Section */}
-      <div className="banner-section">
+      <div className="banner-section" >
         <Container className="text-container">
           <Row>
             {/* Left Content Section */}
@@ -82,11 +82,13 @@ const navigate = useNavigate();
                 Truly must-have pieces in your wardrobe!
               </p>
               <Button className="shop-now-btn" onClick={handleShopNowClick}>Shop Now</Button>
+            
+
             </Col>
 
             {/* Right Content Section */}
             <Col md={6}>
-              <div className="quote-section">
+              <div className="quote-section ">
                 <p className="quote-text">
                   “The freedom in the reins, <br />
                   The belonging in your eyes, <br />
@@ -100,7 +102,7 @@ const navigate = useNavigate();
       </div>
 
       {/* Equestrian Inspired Fashion Section */}
-    <section className="fashion-section" style={{overflow:'hidden'}}>
+<section className="fashion-section" style={{overflow:'hidden'}}>
   <Container>
     <Row>
       <Col md={12} className="text-center">
