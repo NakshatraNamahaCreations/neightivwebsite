@@ -7,7 +7,7 @@ import Equestrian1 from '../../src/assets/Equestrian1.webp';
 import Equestrian2 from '../../src/assets/Equestrian2.webp';
 import bannerimage from '../../src/assets/Banner-imge-Neightiv_2.webp';
 import group from '../../src/assets/Group_7.png';
-import Image1 from '../../src/assets/image1.jpg';
+import layout6 from '../../src/assets/layout6.webp';
 import Image2 from '../../src/assets/image2.jpg';
 import Image3 from '../../src/assets/image3.jpg';
 import Image4 from '../../src/assets/image4.jpg';
@@ -50,7 +50,7 @@ const navigate = useNavigate();
   
 
    const overlayMap = {
-    [Image1]: Image6,
+    [layout6]: Image6,
     [Image2]: Image7,
     [Image3]: Image8,
     [layout1]:layout12,
@@ -264,13 +264,13 @@ const navigate = useNavigate();
                     >
                       <div className="image-wrapper">
                         <img
-                          src={Image1}
+                          src={layout6}
                           alt="New Arrival 1"
                           className="arrival-image"
                         />
                         <div className="image-overlay">
                           <img
-                            src={overlayMap[Image1]}
+                            src={overlayMap[layout6]}
                             alt="Overlay Image 1"
                             className="arrival-image"
                           />
@@ -484,14 +484,14 @@ const navigate = useNavigate();
               <div className="carousel-item-content" style={{ height: '100%' }}>
                 <div className="image-wrapper" style={{ height: '100%' }}>
                   <img
-                    src={Image1}
+                    src={layout6}
                     alt="New Arrival 1"
                     className="arrival-image"
                     style={{ objectFit: 'cover', width: '100%', height: '100%' }}
                   />
                   <div className="image-overlay">
                     <img
-                      src={overlayMap[Image1]}
+                      src={overlayMap[layout6]}
                       alt="Overlay Image 1"
                       className="arrival-image"
                     />
