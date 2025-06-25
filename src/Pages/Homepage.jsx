@@ -32,6 +32,7 @@ import 'aos/dist/aos.css';
 import ScrollToTop from './ScrollToTop';
 import layout1 from '../assets/layout1.webp';
 import layout12 from '../assets/layout12.png';
+import mobilebanner from '../assets/Mobilebanner.webp';
 
 
 
@@ -108,7 +109,7 @@ const navigate = useNavigate();
   <div>
    <div className="mobile-banner" style={{ position: 'relative' }}>
       <img 
-        src={bannerimage} 
+        src={mobilebanner} 
         alt="Equestrian Banner" 
         style={{ width: '100%', height: 'auto' }} 
       />
