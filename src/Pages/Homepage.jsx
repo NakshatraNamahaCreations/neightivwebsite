@@ -33,13 +33,13 @@ import ScrollToTop from './ScrollToTop';
 import layout1 from '../assets/layout1.webp';
 import layout12 from '../assets/layout12.png';
 import mobilebanner from '../assets/Mobilebanner.webp';
-
+import { useCurrency } from './CurrencyContext';
 
 
 
 const HomePage = () => {
 const navigate = useNavigate();
-
+const { convertPrice, currency } = useCurrency();
   const instagramPostLinks = [
     'https://www.instagram.com/p/DKzHCkvzLsO/?img_index=1', // Replace with actual post URL for Image1
     'https://www.instagram.com/p/DKZsVwPTZ4R/?img_index=1', // Replace with actual post URL for Image2
@@ -48,6 +48,8 @@ const navigate = useNavigate();
     'https://www.instagram.com/p/DJULoE1zt63/?img_index=1', // Replace with actual post URL for Image5
     'https://www.instagram.com/p/DGxx_arTUxz/', // Replace with actual post URL for Image6
   ];
+
+  
   
 
    const overlayMap = {
@@ -58,6 +60,8 @@ const navigate = useNavigate();
     [Image4]: Image9,
     [Image5]: Image10,
   };
+
+  
 
     useEffect(() => {
     AOS.init({ duration: 1000, once: true });
@@ -279,7 +283,7 @@ const navigate = useNavigate();
                         <div className="glossy-overlay"></div>
                       </div>
                       <p className="image-caption">Entry to the tack room</p>
-                      <p className="image-price">Rs. 8,499</p>
+                      <p className="image-price">{currency} {convertPrice(8499)}</p>
                     </Tilt>
                   </Col>
                   <Col md={4} data-aos="fade-up">
@@ -309,7 +313,7 @@ const navigate = useNavigate();
                         <div className="glossy-overlay"></div>
                       </div>
                       <p className="image-caption">The grazing synergy</p>
-                      <p className="image-price">Rs.8,499</p>
+                    <p className="image-price">{currency} {convertPrice(8499)}</p>
                     </Tilt>
                   </Col>
                   <Col md={4} data-aos="fade-left">
@@ -339,7 +343,7 @@ const navigate = useNavigate();
                         <div className="glossy-overlay"></div>
                       </div>
                       <p className="image-caption">Saddle power</p>
-                      <p className="image-price">Rs. 8,499</p>
+                     <p className="image-price">{currency} {convertPrice(8499)}</p>
                     </Tilt>
                   </Col>
                 </Row>
@@ -374,7 +378,7 @@ const navigate = useNavigate();
                         <div className="glossy-overlay"></div>
                       </div>
                       <p className="image-caption">Saddles in Queue</p>
-                      <p className="image-price">Rs. 8,499</p>
+                      <p className="image-price">{currency} {convertPrice(8499)}</p>
                     </Tilt>
                   </Col>
                   <Col md={4} data-aos="fade-up">
@@ -404,7 +408,7 @@ const navigate = useNavigate();
                         <div className="glossy-overlay"></div>
                       </div>
                       <p className="image-caption">Bits repeat (Green)</p>
-                      <p className="image-price">Rs. 8,499</p>
+                      <p className="image-price">{currency} {convertPrice(8499)}</p>
                     </Tilt>
                   </Col>
                   <Col md={4} data-aos="fade-left">
@@ -434,7 +438,7 @@ const navigate = useNavigate();
                         <div className="glossy-overlay"></div>
                       </div>
                       <p className="image-caption">It's feed time (Green)</p>
-                      <p className="image-price">Rs. 8,499</p>
+                     <p className="image-price">{currency} {convertPrice(8499)}</p>
                     </Tilt>
                   </Col>
                 </Row>
@@ -500,7 +504,7 @@ const navigate = useNavigate();
                   <div className="glossy-overlay"></div>
                 </div>
                 <p className="image-caption">Entry to the tack room</p>
-                <p className="image-price">Rs. 8,499</p>
+               <p className="image-price">{currency} {convertPrice(8499)}</p>
               </div>
             </Carousel.Item>
 
@@ -523,7 +527,7 @@ const navigate = useNavigate();
                   <div className="glossy-overlay"></div>
                 </div>
                 <p className="image-caption">The grazing synergy</p>
-                <p className="image-price">Rs. 8,499</p>
+                <p className="image-price">{currency} {convertPrice(8499)}</p>
               </div>
             </Carousel.Item>
 
@@ -546,7 +550,7 @@ const navigate = useNavigate();
                   <div className="glossy-overlay"></div>
                 </div>
                 <p className="image-caption">Saddle power</p>
-                <p className="image-price">Rs. 8,499</p>
+<p className="image-price">{currency} {convertPrice(8499)}</p>
               </div>
             </Carousel.Item>
 
@@ -570,7 +574,7 @@ const navigate = useNavigate();
                   <div className="glossy-overlay"></div>
                 </div>
                 <p className="image-caption">Saddles in Queue</p>
-                <p className="image-price">Rs. 8,499</p>
+             <p className="image-price">{currency} {convertPrice(8499)}</p>
               </div>
             </Carousel.Item>
 
@@ -593,7 +597,7 @@ const navigate = useNavigate();
                   <div className="glossy-overlay"></div>
                 </div>
                 <p className="image-caption">Bits repeat (Green)</p>
-                <p className="image-price">Rs. 8,499</p>
+              <p className="image-price">{currency} {convertPrice(8499)}</p>
               </div>
             </Carousel.Item>
 
@@ -616,7 +620,7 @@ const navigate = useNavigate();
                   <div className="glossy-overlay"></div>
                 </div>
                 <p className="image-caption">It's feed time (Green)</p>
-                <p className="image-price">Rs. 8,499</p>
+               <p className="image-price">{currency} {convertPrice(8499)}</p>
               </div>
             </Carousel.Item>
 

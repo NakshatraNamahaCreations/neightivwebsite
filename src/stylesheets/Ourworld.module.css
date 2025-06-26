@@ -34,7 +34,7 @@
 .mediaImg {
   width: 100%;
   max-width: 800px;
-  height: 350px;
+  /* height: 350px; */
   object-fit: cover;
   /* border-radius: 8px; */
 }
@@ -42,7 +42,7 @@
 .mediaImgTall {
   width: 100%;
   max-width: 800px;
-  height: 400px;
+  height: 600px;
   object-fit: cover;
   /* border-radius: 8px; */
 }
@@ -110,7 +110,7 @@
   .mediaImgLarge,
   .fullImg {
     max-width: 100%;
-    height: 200px;
+    /* height: 200px; */
   }
   .worldContainer {
     padding: 0 0.5rem !important;

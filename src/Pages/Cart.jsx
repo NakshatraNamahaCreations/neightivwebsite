@@ -272,8 +272,9 @@ const Cart = () => {
                       return (
                         <>
                           <p style={{ fontWeight: '600', color: '#000', fontSize: '18px' }}>
-                            Total: {currency} {convertedGrandTotal.toLocaleString('en', { minimumFractionDigits: 2 })}
+                            {/* Total: {currency} {convertedGrandTotal.toLocaleString('en', { minimumFractionDigits: 2 })} */}
                           </p>
+                          
                         </>
                       );
                     })()}
