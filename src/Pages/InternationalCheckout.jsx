@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Button, Form } from 'react-bootstrap';
 import { useCart } from './CartContext';
 import { useNavigate } from 'react-router-dom';
@@ -7,10 +7,25 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import Footer from '../Components/Footer';
 import { useCurrency } from './CurrencyContext';
 
+const countryOptions = [
+  { code: 'US', name: 'United States' },
+  { code: 'CN', name: 'China' },
+  { code: 'GB', name: 'United Kingdom' },
+  { code: 'CA', name: 'Canada' },
+  { code: 'AU', name: 'Australia' },
+  { code: 'DE', name: 'Germany' },
+  { code: 'FR', name: 'France' },
+  { code: 'JP', name: 'Japan' },
+  { code: 'BR', name: 'Brazil' },
+  { code: 'MX', name: 'Mexico' },
+  
+];
+
 const InternationalCheckout = () => {
   const { cartItems } = useCart();
   const navigate = useNavigate();
   const { currency, convertPrice } = useCurrency();
+
   const [shippingDetails, setShippingDetails] = useState({
     receiverName: '',
     receiverAddress: '',
@@ -20,16 +35,17 @@ const InternationalCheckout = () => {
     receiverPhone: '',
     receiverCountryCode: '',
   });
+
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [shippingChargeUSD, setShippingChargeUSD] = useState('0.00');
 
   const normalizeItem = (item) => {
     const totalPrice = Number(item.price) || 0;
-    console.log('InternationalCheckout: Normalizing item', { name: item.name, totalPrice });
     return { ...item, totalPrice };
   };
 
-  const calculateTotal = () => {
+  const calculateSubtotal = () => {
     const itemsTotal = cartItems.reduce(
       (total, item) => {
         const normalizedItem = normalizeItem(item);
@@ -39,6 +55,17 @@ const InternationalCheckout = () => {
       0
     );
     return itemsTotal.toFixed(2);
+  };
+
+  const getConvertedShippingCharge = () => {
+    const converted = Number(convertPrice(shippingChargeUSD || '0')).toFixed(2);
+    return converted;
+  };
+
+  const calculateTotal = () => {
+    const subtotal = Number(calculateSubtotal());
+    const shipping = Number(getConvertedShippingCharge());
+    return (subtotal + shipping).toFixed(2);
   };
 
   const calculateShipmentDetails = () => {
@@ -54,7 +81,71 @@ const InternationalCheckout = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setShippingDetails((prev) => ({ ...prev, [name]: value }));
+    setError(null);
   };
+
+  useEffect(() => {
+    const fetchShippingCharge = async () => {
+      if (
+        !shippingDetails.receiverPostalCode ||
+        !shippingDetails.receiverCountryCode ||
+        !shippingDetails.receiverCity ||
+        shippingDetails.receiverCountryCode === 'IN'
+      ) {
+        setShippingChargeUSD('0.00');
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const shipmentDetails = calculateShipmentDetails();
+        const totalDeclaredValue = cartItems.reduce(
+          (sum, item) => sum + Number(convertPrice(normalizeItem(item).totalPrice)) * item.quantity,
+          0
+        );
+
+        const response = await axios.post('https://api.neightivglobal.com/api/dhl/calculate-shipping-charge', {
+          receiverPostalCode: shippingDetails.receiverPostalCode,
+          receiverCountryCode: shippingDetails.receiverCountryCode,
+          receiverCity: shippingDetails.receiverCity,
+          cartItems: cartItems.map((item) => {
+            const normalizedItem = normalizeItem(item);
+            const convertedPrice = Number(convertPrice(normalizedItem.totalPrice)).toFixed(2);
+            return {
+              name: normalizedItem.name,
+              price: convertedPrice,
+              quantity: normalizedItem.quantity,
+              sku: normalizedItem.id,
+            };
+          }),
+          weight: shipmentDetails.weight,
+          length: shipmentDetails.length,
+          width: shipmentDetails.width,
+          height: shipmentDetails.height,
+          declaredValue: totalDeclaredValue.toFixed(2),
+          currency,
+        });
+
+        setShippingChargeUSD(response.data.shippingCharge);
+        console.log('Fetched shipping charge (USD):', response.data.shippingCharge);
+      } catch (err) {
+        console.error('Error fetching shipping charge:', err.response?.data || err.message);
+        setError(err.response?.data?.error || 'Failed to calculate shipping charge. Please check your input and try again.');
+        setShippingChargeUSD('0.00');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchShippingCharge();
+  }, [
+    shippingDetails.receiverPostalCode,
+    shippingDetails.receiverCountryCode,
+    shippingDetails.receiverCity,
+    cartItems,
+    currency,
+    convertPrice,
+  ]);
 
   const validateShippingDetails = () => {
     const requiredFields = [
@@ -76,93 +167,347 @@ const InternationalCheckout = () => {
       setError('This page is for international shipping only. Please use the regular checkout for India.');
       return false;
     }
+    if (!countryOptions.some((country) => country.code === shippingDetails.receiverCountryCode)) {
+      setError('Please select a valid country from the list.');
+      return false;
+    }
     return true;
   };
 
-  const handleDHLAndPayPal = async () => {
-    if (!validateShippingDetails()) return;
+//   const handleDHLAndPayPal = async () => {
+//     if (!validateShippingDetails()) return;
 
-    setLoading(true);
-    setError(null);
+//     setLoading(true);
+//     setError(null);
 
-    try {
-      const shipmentDetails = calculateShipmentDetails();
-      const totalAmount = Number(calculateTotal()).toFixed(2);
+//     try {
+//       const shipmentDetails = calculateShipmentDetails();
+//       const totalAmount = Number(calculateSubtotal()).toFixed(2);
 
-      const shipmentResponse = await axios.post('https://api.neightivglobal.com/api/dhl/create-shipment', {
-        receiverName: shippingDetails.receiverName,
-        receiverAddress: shippingDetails.receiverAddress,
-        receiverCity: shippingDetails.receiverCity,
-        receiverPostalCode: shippingDetails.receiverPostalCode,
-        receiverStateCode: shippingDetails.receiverStateCode,
-        receiverPhone: shippingDetails.receiverPhone,
-        receiverCountryCode: shippingDetails.receiverCountryCode,
-        declaredValue: totalAmount,
-        currency: currency,
-        weight: shipmentDetails.weight,
-        length: shipmentDetails.length,
-        width: shipmentDetails.width,
-        height: shipmentDetails.height,
+//       const shipmentResponse = await axios.post('https://api.neightivglobal.com/api/dhl/create-shipment', {
+//         receiverName: shippingDetails.receiverName,
+//         receiverAddress: shippingDetails.receiverAddress,
+//         receiverCity: shippingDetails.receiverCity,
+//         receiverPostalCode: shippingDetails.receiverPostalCode,
+//         receiverStateCode: shippingDetails.receiverStateCode,
+//         receiverPhone: shippingDetails.receiverPhone,
+//         receiverCountryCode: shippingDetails.receiverCountryCode,
+//         declaredValue: totalAmount,
+//         currency: currency,
+//         weight: shipmentDetails.weight,
+//         length: shipmentDetails.length,
+//         width: shipmentDetails.width,
+//         height: shipmentDetails.height,
+//         cartItems: cartItems.map((item) => {
+//           const normalizedItem = normalizeItem(item);
+//           const convertedPrice = Number(convertPrice(normalizedItem.totalPrice)).toFixed(2);
+//           return {
+//             name: normalizedItem.name,
+//             price: convertedPrice,
+//             quantity: normalizedItem.quantity,
+//             sku: normalizedItem.id,
+//           };
+//         }),
+//         freightCharge: getConvertedShippingCharge(),
+//       });
+
+//       console.log('📦 Order Created (DHL Shipment):', shipmentResponse.data);
+
+// // Extract URLs from the SOAP response
+// const responseText = shipmentResponse.data;
+// const urls = responseText.match(/https?:\/\/[^\s;]+/g);
+
+// if (urls && urls.length > 0) {
+//   urls.forEach((url) => window.open(url.trim(), '_blank'));
+// } else {
+//   console.warn('No URLs found in DHL response');
+// }
+
+//     } catch (err) {
+//       console.error('❌ Error:', err.response?.data || err.message);
+//       setError(err.response?.data?.error || 'Failed to process order or payment. Please try again.');
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+// const handleDHLAndPayPal = async () => {
+//   if (!validateShippingDetails()) return;
+
+//   setLoading(true);
+//   setError(null);
+
+//   try {
+//     const shipmentDetails = calculateShipmentDetails();
+//     const totalAmount = Number(calculateSubtotal()).toFixed(2);
+
+//     const shipmentResponse = await axios.post('https://api.neightivglobal.com/api/dhl/create-shipment', {
+//       receiverName: shippingDetails.receiverName,
+//       receiverAddress: shippingDetails.receiverAddress,
+//       receiverCity: shippingDetails.receiverCity,
+//       receiverPostalCode: shippingDetails.receiverPostalCode,
+//       receiverStateCode: shippingDetails.receiverStateCode,
+//       receiverPhone: shippingDetails.receiverPhone,
+//       receiverCountryCode: shippingDetails.receiverCountryCode,
+//       declaredValue: totalAmount,
+//       currency: currency,
+//       weight: shipmentDetails.weight,
+//       length: shipmentDetails.length,
+//       width: shipmentDetails.width,
+//       height: shipmentDetails.height,
+//       cartItems: cartItems.map((item) => {
+//         const normalizedItem = normalizeItem(item);
+//         const convertedPrice = Number(convertPrice(normalizedItem.totalPrice)).toFixed(2);
+//         return {
+//           name: normalizedItem.name,
+//           price: convertedPrice,
+//           quantity: normalizedItem.quantity,
+//           sku: normalizedItem.id,
+//         };
+//       }),
+//       freightCharge: getConvertedShippingCharge(),
+//     });
+
+//     console.log('📦 Order Created (DHL Shipment):', shipmentResponse.data);
+
+//     // 1. Extract the value between <PostShipment_CSBVResult>...</PostShipment_CSBVResult>
+//     const resultMatch = shipmentResponse.data.match(/<PostShipment_CSBVResult>(.*?)<\/PostShipment_CSBVResult>/);
+//     const resultText = resultMatch ? resultMatch[1] : '';
+
+//     // 2. Extract all URLs from the result text
+//     const urls = resultText.match(/https?:\/\/[^\s;]+/g);
+
+//     // 3. Open each URL in a new tab
+//     if (urls && urls.length > 0) {
+//       urls.forEach(url => {
+//         window.open(url.trim(), '_blank');
+//       });
+//     } else {
+//       console.warn('No URLs found in DHL response');
+//     }
+
+//   } catch (err) {
+//     console.error('❌ Error:', err.response?.data || err.message);
+//     setError(err.response?.data?.error || 'Failed to process order or payment. Please try again.');
+//   } finally {
+//     setLoading(false);
+//   }
+// };
+
+// const handleDHLAndPayPal = async () => {
+//   if (!validateShippingDetails()) return;
+
+//   setLoading(true);
+//   setError(null);
+
+//   try {
+//     const shipmentDetails = calculateShipmentDetails();
+//     const totalAmount = Number(calculateSubtotal()).toFixed(2);
+
+//     const shipmentResponse = await axios.post('https://api.neightivglobal.com/api/dhl/create-shipment', {
+//       receiverName: shippingDetails.receiverName,
+//       receiverAddress: shippingDetails.receiverAddress,
+//       receiverCity: shippingDetails.receiverCity,
+//       receiverPostalCode: shippingDetails.receiverPostalCode,
+//       receiverStateCode: shippingDetails.receiverStateCode,
+//       receiverPhone: shippingDetails.receiverPhone,
+//       receiverCountryCode: shippingDetails.receiverCountryCode,
+//       declaredValue: totalAmount,
+//       currency: currency,
+//       weight: shipmentDetails.weight,
+//       length: shipmentDetails.length,
+//       width: shipmentDetails.width,
+//       height: shippingDetails.height,
+//       cartItems: cartItems.map((item) => {
+//         const normalizedItem = normalizeItem(item);
+//         const convertedPrice = Number(convertPrice(normalizedItem.totalPrice)).toFixed(2);
+//         return {
+//           name: normalizedItem.name,
+//           price: convertedPrice,
+//           quantity: normalizedItem.quantity,
+//           sku: normalizedItem.id,
+//         };
+//       }),
+//       freightCharge: getConvertedShippingCharge(),
+//     });
+
+//     console.log('📦 DHL Shipment Response:', shipmentResponse.data);
+
+//     // Step 1: Extract the inner XML result
+//     const resultMatch = shipmentResponse.data.match(/<PostShipment_CSBVResult>(.*?)<\/PostShipment_CSBVResult>/s);
+//     const resultText = resultMatch ? resultMatch[1].trim() : '';
+
+//     // Step 2: Extract only the invoice PDF with improved regex
+//     const invoicePdfMatch = resultText.match(/Invoice Path\s*:\s*(https:\/\/www\.dhlindiaplugin\.com\/FileUpload\/Invoice\/[^;\s]+\.pdf)/i);
+//     const invoicePdfUrl = invoicePdfMatch?.[1]?.trim();
+
+//     console.log('Invoice PDF URL:', invoicePdfUrl); // Debug log
+
+//     // Step 3: Function to open URL with validation
+//     const openPdfInTab = (url, name) => {
+//       if (url && /^https?:\/\/.*\.pdf$/i.test(url)) {
+//         try {
+//           const newWindow = window.open(url, '_blank', 'noopener,noreferrer');
+//           if (!newWindow) {
+//             console.warn(`Failed to open ${name} PDF: Pop-up blocked or browser issue`);
+//             setError(`Please allow pop-ups to open the ${name} PDF.`);
+//           } else {
+//             console.log(`Opened ${name} PDF: ${url}`);
+//           }
+//         } catch (err) {
+//           console.error(`Error opening ${name} PDF:`, err);
+//           setError(`Failed to open ${name} PDF. Please try again.`);
+//         }
+//       } else {
+//         console.warn(`${name} PDF URL not found or invalid: ${url}`);
+//         setError(`${name} PDF URL not found or invalid.`);
+//       }
+//     };
+
+//     // Step 4: Open only the invoice PDF
+//     if (invoicePdfUrl) {
+//       openPdfInTab(invoicePdfUrl, 'Invoice');
+//     } else {
+//       console.warn('Invoice PDF URL not found');
+//       setError('Invoice PDF URL not found.');
+//     }
+
+//     // Step 5: Initiate PayPal Payment
+//     const tokenResponse = await axios.post('https://api.neightivglobal.com/api/paypal/token');
+//     const accessToken = tokenResponse.data.access_token;
+
+//     const orderResponse = await axios.post(
+//       'https://api.neightivglobal.com/api/paypal/create-order',
+//       {
+//         amount: totalUSD,
+//         currency_code: 'USD',
+//         cartItems: cartItems.map((item) => {
+//           const normalizedItem = normalizeItem(item);
+//           return {
+//             name: normalizedItem.name,
+//             price: parseFloat((normalizedItem.totalPrice * exchangeRate).toFixed(2)),
+//             quantity: normalizedItem.quantity,
+//             sku: normalizedItem.id,
+//           };
+//         }),
+//       },
+//       {
+//         headers: { Authorization: `Bearer ${accessToken}` },
+//       }
+//     );
+
+//     const approvalLink = orderResponse.data.links.find((link) => link.rel === 'approve');
+//     if (approvalLink) {
+//       window.location.href = approvalLink.href;
+//     } else {
+//       throw new Error('No approval link found in PayPal response.');
+//     }
+
+//   } catch (err) {
+//     console.error('❌ Error:', err.response?.data || err.message);
+//     setError(err.response?.data?.error || err.message || 'Failed to process order or payment. Please try again.');
+//   } finally {
+//     setLoading(false);
+//   }
+// };
+
+const handleDHLAndPayPal = async () => {
+  if (!validateShippingDetails()) return;
+
+  setLoading(true);
+  setError(null);
+
+  try {
+    const shipmentDetails = calculateShipmentDetails();
+    const totalAmount = Number(calculateSubtotal()).toFixed(2);
+
+    const shipmentResponse = await axios.post('https://api.neightivglobal.com/api/dhl/create-shipment', {
+      receiverName: shippingDetails.receiverName,
+      receiverAddress: shippingDetails.receiverAddress,
+      receiverCity: shippingDetails.receiverCity,
+      receiverPostalCode: shippingDetails.receiverPostalCode,
+      receiverStateCode: shippingDetails.receiverStateCode,
+      receiverPhone: shippingDetails.receiverPhone,
+      receiverCountryCode: shippingDetails.receiverCountryCode,
+      declaredValue: totalAmount,
+      currency: currency,
+      weight: shipmentDetails.weight,
+      length: shipmentDetails.length,
+      width: shipmentDetails.width,
+      height: shipmentDetails.height,
+      cartItems: cartItems.map((item) => {
+        const normalizedItem = normalizeItem(item);
+        const convertedPrice = Number(convertPrice(normalizedItem.totalPrice)).toFixed(2);
+        return {
+          name: normalizedItem.name,
+          price: convertedPrice,
+          quantity: normalizedItem.quantity,
+          sku: normalizedItem.id,
+        };
+      }),
+      freightCharge: getConvertedShippingCharge(),
+    });
+
+    console.log('📦 DHL Shipment Response:', shipmentResponse.data);
+
+    const resultMatch = shipmentResponse.data.match(/<PostShipment_CSBVResult>(.*?)<\/PostShipment_CSBVResult>/s);
+    const resultText = resultMatch ? resultMatch[1].trim() : '';
+
+    const urls = resultText.match(/https?:\/\/[^\s;]+/g);
+    if (urls && urls.length > 0) {
+      // 🔓 Open all URLs (before any other await!)
+      urls.forEach((url) => {
+        window.open(url, '_blank', 'noopener,noreferrer');
+      });
+    } else {
+      console.warn('No URLs found in DHL response');
+      setError('No PDF URL found from DHL.');
+    }
+
+    // ✅ PayPal token & payment
+    const tokenResponse = await axios.post('https://api.neightivglobal.com/api/paypal/token');
+    const accessToken = tokenResponse.data.access_token;
+
+    const exchangeRate = 1; 
+  
+
+    const totalUSD = calculateTotal();
+    const orderResponse = await axios.post(
+      'https://api.neightivglobal.com/api/paypal/create-order',
+      {
+        amount: totalUSD,
+        currency_code: 'USD',
         cartItems: cartItems.map((item) => {
           const normalizedItem = normalizeItem(item);
-          const convertedPrice = Number(convertPrice(normalizedItem.totalPrice)).toFixed(2);
           return {
             name: normalizedItem.name,
-            price: convertedPrice,
+            price: parseFloat((normalizedItem.totalPrice * exchangeRate).toFixed(2)),
             quantity: normalizedItem.quantity,
             sku: normalizedItem.id,
           };
         }),
-        freightCharge: '0.00',
-      });
-
-      console.log('📦 Order Created (DHL Shipment):', shipmentResponse.data);
-
-      const tokenResponse = await axios.post('https://api.neightivglobal.com/api/paypal/token');
-      const accessToken = tokenResponse.data.access_token;
-
-      const orderResponse = await axios.post(
-        'https://api.neightivglobal.com/api/paypal/create-order',
-        {
-          amount: totalAmount,
-          currency_code: currency,
-          cartItems: cartItems.map((item) => {
-            const normalizedItem = normalizeItem(item);
-            const convertedPrice = Number(convertPrice(normalizedItem.totalPrice)).toFixed(2);
-            return {
-              name: normalizedItem.name,
-              price: convertedPrice,
-              quantity: normalizedItem.quantity,
-              sku: normalizedItem.id,
-            };
-          }),
-          shipping: {
-            amount: '0.00',
-            currency_code: currency,
-          },
-        },
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        }
-      );
-
-      const approvalLink = orderResponse.data.links.find((link) => link.rel === 'approve');
-      if (approvalLink) {
-        window.location.href = approvalLink.href;
-      } else {
-        throw new Error('No approval link found in PayPal response.');
+      },
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
       }
-    } catch (err) {
-      console.error('❌ Error:', err.response?.data || err.message);
-      const errorMessage =
-        err.response?.data?.error?.message ||
-        err.response?.data?.message ||
-        'Failed to process order or payment. Please try again.';
-      setError(errorMessage);
-    } finally {
-      setLoading(false);
+    );
+
+    const approvalLink = orderResponse.data.links.find((link) => link.rel === 'approve');
+    if (approvalLink) {
+      window.location.href = approvalLink.href;
+    } else {
+      throw new Error('No approval link found in PayPal response.');
     }
-  };
+
+  } catch (err) {
+    console.error('❌ Error:', err.response?.data || err.message);
+    setError(err.response?.data?.error || err.message || 'Failed to process order or payment. Please try again.');
+  } finally {
+    setLoading(false);
+  }
+};
+
+
 
   return (
     <>
@@ -197,87 +542,45 @@ const InternationalCheckout = () => {
                       <Col md={6}>
                         <Form.Group className="mb-3">
                           <Form.Label>Receiver Name *</Form.Label>
-                          <Form.Control
-                            type="text"
-                            name="receiverName"
-                            value={shippingDetails.receiverName}
-                            onChange={handleInputChange}
-                            placeholder="e.g., John Doe"
-                            required
-                          />
+                          <Form.Control type="text" name="receiverName" value={shippingDetails.receiverName} onChange={handleInputChange} required />
                         </Form.Group>
                         <Form.Group className="mb-3">
                           <Form.Label>Address *</Form.Label>
-                          <Form.Control
-                            type="text"
-                            name="receiverAddress"
-                            value={shippingDetails.receiverAddress}
-                            onChange={handleInputChange}
-                            placeholder="e.g., 123 Main Street, Apt 4B"
-                            required
-                          />
+                          <Form.Control type="text" name="receiverAddress" value={shippingDetails.receiverAddress} onChange={handleInputChange} required />
                         </Form.Group>
                         <Form.Group className="mb-3">
                           <Form.Label>City *</Form.Label>
-                          <Form.Control
-                            type="text"
-                            name="receiverCity"
-                            value={shippingDetails.receiverCity}
-                            onChange={handleInputChange}
-                            placeholder="e.g., New York"
-                            required
-                          />
+                          <Form.Control type="text" name="receiverCity" value={shippingDetails.receiverCity} onChange={handleInputChange} required />
                         </Form.Group>
                       </Col>
                       <Col md={6}>
                         <Form.Group className="mb-3">
                           <Form.Label>Postal Code *</Form.Label>
-                          <Form.Control
-                            type="text"
-                            name="receiverPostalCode"
-                            value={shippingDetails.receiverPostalCode}
-                            onChange={handleInputChange}
-                            placeholder="e.g., 10001"
-                            required
-                          />
+                          <Form.Control type="text" name="receiverPostalCode" value={shippingDetails.receiverPostalCode} onChange={handleInputChange} required />
                         </Form.Group>
                         <Form.Group className="mb-3">
                           <Form.Label>State/Region Code *</Form.Label>
-                          <Form.Control
-                            type="text"
-                            name="receiverStateCode"
-                            value={shippingDetails.receiverStateCode}
-                            onChange={handleInputChange}
-                            placeholder="e.g., NY"
-                            required
-                          />
+                          <Form.Control type="text" name="receiverStateCode" value={shippingDetails.receiverStateCode} onChange={handleInputChange} required />
                         </Form.Group>
                         <Form.Group className="mb-3">
                           <Form.Label>Phone *</Form.Label>
-                          <Form.Control
-                            type="text"
-                            name="receiverPhone"
-                            value={shippingDetails.receiverPhone}
-                            onChange={handleInputChange}
-                            placeholder="e.g., +11234567890"
-                            required
-                          />
+                          <Form.Control type="text" name="receiverPhone" value={shippingDetails.receiverPhone} onChange={handleInputChange} required />
                         </Form.Group>
                         <Form.Group className="mb-3">
-                          <Form.Label>Country Code (e.g., US, CN) *</Form.Label>
-                          <Form.Control
-                            type="text"
-                            name="receiverCountryCode"
-                            value={shippingDetails.receiverCountryCode}
-                            onChange={handleInputChange}
-                            placeholder="e.g., US"
-                            required
-                          />
-                          <Form.Text muted>Enter the two-letter ISO country code (not IN for international).</Form.Text>
+                          <Form.Label>Country *</Form.Label>
+                          <Form.Select name="receiverCountryCode" value={shippingDetails.receiverCountryCode} onChange={handleInputChange} required>
+                            <option value="">Select a country</option>
+                            {countryOptions.map((country) => (
+                              <option key={country.code} value={country.code}>
+                                {country.name} ({country.code})
+                              </option>
+                            ))}
+                          </Form.Select>
                         </Form.Group>
                       </Col>
                     </Row>
                   </Form>
+
                   <div style={{ marginTop: '20px' }}>
                     <h4 style={{ color: '#000', marginBottom: '20px' }}>Order Summary</h4>
                     {cartItems.map((item) => {
@@ -285,7 +588,9 @@ const InternationalCheckout = () => {
                       const convertedTotalPrice = Number(convertPrice(normalizedItem.totalPrice));
                       return (
                         <Row key={normalizedItem.id} style={{ marginBottom: '10px' }}>
-                          <Col md={6}>{normalizedItem.name} (x{normalizedItem.quantity})</Col>
+                          <Col md={6}>
+                            {normalizedItem.name} (x{normalizedItem.quantity})
+                          </Col>
                           <Col md={6} style={{ textAlign: 'right' }}>
                             {currency} {(convertedTotalPrice * normalizedItem.quantity).toLocaleString('en', { minimumFractionDigits: 2 })}
                           </Col>
@@ -295,7 +600,11 @@ const InternationalCheckout = () => {
                     <hr />
                     <div style={{ textAlign: 'right', marginTop: '20px' }}>
                       <p style={{ color: '#000', fontSize: '16px' }}>
-                        Subtotal: {currency} {Number(cartItems.reduce((sum, item) => sum + Number(convertPrice(normalizeItem(item).totalPrice)) * item.quantity, 0)).toLocaleString('en', { minimumFractionDigits: 2 })}
+                        Subtotal: {currency} {Number(calculateSubtotal()).toLocaleString('en', { minimumFractionDigits: 2 })}
+                      </p>
+                      <p style={{ color: '#000', fontSize: '16px' }}>
+                        Shipping Charge: {currency}{' '}
+                        {loading ? 'Calculating...' : Number(getConvertedShippingCharge()).toLocaleString('en', { minimumFractionDigits: 2 })}
                       </p>
                       <p style={{ fontWeight: '600', color: '#000', fontSize: '18px' }}>
                         Total: {currency} {Number(calculateTotal()).toLocaleString('en', { minimumFractionDigits: 2 })}
@@ -307,7 +616,7 @@ const InternationalCheckout = () => {
                       )}
                       <Button
                         onClick={handleDHLAndPayPal}
-                        disabled={loading}
+                        disabled={loading || shippingChargeUSD === '0.00'}
                         style={{
                           backgroundColor: '#ffcc00',
                           color: '#000',
