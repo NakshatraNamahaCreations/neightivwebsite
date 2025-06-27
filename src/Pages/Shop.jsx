@@ -5,6 +5,8 @@ import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Footer from '../Components/Footer';
 import { useCurrency } from './CurrencyContext';
+import { useLocation } from 'react-router-dom';
+
 
 const Shop = () => {
   const navigate = useNavigate();
@@ -13,6 +15,17 @@ const Shop = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+const location = useLocation();
+
+useEffect(() => {
+  const params = new URLSearchParams(location.search);
+  const filterParam = params.get('filter');
+
+  if (filterParam === 'square' || filterParam === 'rectangular') {
+    setFilter(filterParam);
+  }
+}, [location.search]);
+
 
   // Fetch products from the backend
   useEffect(() => {
@@ -74,11 +87,14 @@ const Shop = () => {
           .product-card {
             position: relative;
             overflow: hidden;
+              
           }
           .product-image {
             transition: opacity 0.4s ease;
             width: 100%;
+            
             display: block;
+          
           }
           .product-card .hover-image {
             position: absolute;

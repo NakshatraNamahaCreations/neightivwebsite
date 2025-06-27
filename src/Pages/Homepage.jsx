@@ -1,8 +1,9 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Container, Button, Row, Col , Carousel} from 'react-bootstrap';
 import { Tilt } from 'react-tilt';
 import { useNavigate } from 'react-router-dom';
 import './HomePage.css';
+import axios from 'axios';
 import Equestrian1 from '../../src/assets/Equestrian1.webp';
 import Equestrian2 from '../../src/assets/Equestrian2.webp';
 import bannerimage from '../../src/assets/Banner-imge-Neightiv_2.webp';
@@ -49,6 +50,22 @@ const { convertPrice, currency } = useCurrency();
     'https://www.instagram.com/p/DGxx_arTUxz/', // Replace with actual post URL for Image6
   ];
 
+
+  const [newArrivals, setNewArrivals] = useState([]);
+
+useEffect(() => {
+  const fetchNewArrivals = async () => {
+    try {
+      const res = await axios.get('https://api.neightivglobal.com/api/products');
+      const top6 = res.data.slice(0, 6); // Take only the latest 6 or based on logic
+      setNewArrivals(top6);
+    } catch (err) {
+      console.error("Failed to fetch new arrivals", err);
+    }
+  };
+  fetchNewArrivals();
+}, []);
+
   
   
 
@@ -69,9 +86,23 @@ const { convertPrice, currency } = useCurrency();
 
 
   const handleShopNowClick = () => {
-    navigate('/shop'); // Navigate to /shop route
+    navigate('/shop'); 
   };
 
+const handleCustomClick = () => {
+  navigate('/customprints');
+  window.scrollTo(0, 0);
+};
+
+
+  const handleourworldClick = () => {
+    navigate('/ourworld');
+        window.scrollTo(0, 0);
+}
+
+  const handleProductClick = (id) => {
+    navigate(`/product/${id}`);
+  };
 
 
   return (
@@ -168,9 +199,6 @@ const { convertPrice, currency } = useCurrency();
    
   </div>
 </div>
-
-    
-
       {/* Equestrian Inspired Fashion Section */}
 <section className="fashion-section" style={{overflow:'hidden'}}>
   <Container>
@@ -203,16 +231,18 @@ const { convertPrice, currency } = useCurrency();
             style={{ width: "90%" }}
           />
           <div className="overlay-text" data-aos="fade-up" data-aos-delay="300">
-            <span
-              className="square-text"
-              style={{
-                borderBottom: '2px solid white',
-                paddingBottom: '4px',
-                display: 'inline-block'
-              }}
-            >
-              Square Scarves
-            </span>
+          <span
+  className="square-text"
+  style={{
+    borderBottom: '2px solid white',
+    paddingBottom: '4px',
+    display: 'inline-block',
+    cursor: 'pointer',
+  }}
+  onClick={() => navigate('/shop?filter=square')}
+>
+  Square Scarves
+</span>
           </div>
         </div>
       </Col>
@@ -226,16 +256,18 @@ const { convertPrice, currency } = useCurrency();
             style={{ width: "90%" }}
           />
           <div className="overlay-text" data-aos="fade-up" data-aos-delay="300">
-            <span
-              className="square-text"
-              style={{
-                borderBottom: '2px solid white',
-                paddingBottom: '4px',
-                display: 'inline-block'
-              }}
-            >
-              Rectangular Scarves
-            </span>
+           <span
+  className="square-text"
+  style={{
+    borderBottom: '2px solid white',
+    paddingBottom: '4px',
+    display: 'inline-block',
+    cursor: 'pointer',
+  }}
+  onClick={() => navigate('/shop?filter=rectangular')}
+>
+  Rectangular Scarves
+</span>
           </div>
         </div>
       </Col>
@@ -253,197 +285,46 @@ const { convertPrice, currency } = useCurrency();
         <Row>
           <Col md={12} className="text-center">
             <h2 style={{ color: '#fff', marginBottom: '40px' }}>New Arrivals</h2>
-            <Carousel indicators={false}>
-              <Carousel.Item>
-                <Row>
-                  <Col md={4} data-aos="fade-right">
-                    <Tilt
-                      options={{
-                        max: 25,
-                        scale: 1.05,
-                        speed: 400,
-                        glare: true,
-                        'max-glare': 0.5,
-                      }}
-                      className="tilt-wrapper"
-                    >
-                      <div className="image-wrapper">
-                        <img
-                          src={layout6}
-                          alt="New Arrival 1"
-                          className="arrival-image"
-                        />
-                        <div className="image-overlay">
-                          <img
-                            src={overlayMap[layout6]}
-                            alt="Overlay Image 1"
-                            className="arrival-image"
-                          />
-                        </div>
-                        <div className="glossy-overlay"></div>
-                      </div>
-                      <p className="image-caption">Entry to the tack room</p>
-                      <p className="image-price">{currency} {convertPrice(8499)}</p>
-                    </Tilt>
-                  </Col>
-                  <Col md={4} data-aos="fade-up">
-                    <Tilt
-                      options={{
-                        max: 25,
-                        scale: 1.05,
-                        speed: 400,
-                        glare: true,
-                        'max-glare': 0.5,
-                      }}
-                      className="tilt-wrapper"
-                    >
-                      <div className="image-wrapper">
-                        <img
-                          src={Image2}
-                          alt="New Arrival 2"
-                          className="arrival-image"
-                        />
-                        <div className="image-overlay">
-                          <img
-                            src={overlayMap[Image2]}
-                            alt="Overlay Image 2"
-                            className="arrival-image"
-                          />
-                        </div>
-                        <div className="glossy-overlay"></div>
-                      </div>
-                      <p className="image-caption">The grazing synergy</p>
-                    <p className="image-price">{currency} {convertPrice(8499)}</p>
-                    </Tilt>
-                  </Col>
-                  <Col md={4} data-aos="fade-left">
-                    <Tilt
-                      options={{
-                        max: 25,
-                        scale: 1.05,
-                        speed: 400,
-                        glare: true,
-                        'max-glare': 0.5,
-                      }}
-                      className="tilt-wrapper"
-                    >
-                      <div className="image-wrapper">
-                        <img
-                          src={Image3}
-                          alt="New Arrival 3"
-                          className="arrival-image"
-                        />
-                        <div className="image-overlay">
-                          <img
-                            src={overlayMap[Image3]}
-                            alt="Overlay Image 3"
-                            className="arrival-image"
-                          />
-                        </div>
-                        <div className="glossy-overlay"></div>
-                      </div>
-                      <p className="image-caption">Saddle power</p>
-                     <p className="image-price">{currency} {convertPrice(8499)}</p>
-                    </Tilt>
-                  </Col>
-                </Row>
-              </Carousel.Item>
+          <Carousel indicators={false}>
+  {[0, 3].map((startIdx) => (
+    <Carousel.Item key={startIdx}>
+      <Row>
+        {newArrivals.slice(startIdx, startIdx + 3).map((product, index) => (
+          <Col md={4} key={product._id} data-aos={index === 0 ? 'fade-right' : index === 1 ? 'fade-up' : 'fade-left'}>
+            <Tilt
 
-              <Carousel.Item>
-                <Row>
-                  <Col md={4} data-aos="fade-right">
-                    <Tilt
-                      options={{
-                        max: 25,
-                        scale: 1.05,
-                        speed: 400,
-                        glare: true,
-                        'max-glare': 0.5,
-                      }}
-                      className="tilt-wrapper"
-                    >
-                      <div className="image-wrapper">
-                        <img
-                          src={layout1}
-                          alt="New Arrival 3"
-                          className="arrival-image"
-                        />
-                        <div className="image-overlay">
-                          <img
-                            src={overlayMap[layout1]}
-                            alt="Overlay Image 3"
-                            className="arrival-image"
-                          />
-                        </div>
-                        <div className="glossy-overlay"></div>
-                      </div>
-                      <p className="image-caption">Saddles in Queue</p>
-                      <p className="image-price">{currency} {convertPrice(8499)}</p>
-                    </Tilt>
-                  </Col>
-                  <Col md={4} data-aos="fade-up">
-                    <Tilt
-                      options={{
-                        max: 25,
-                        scale: 1.05,
-                        speed: 400,
-                        glare: true,
-                        'max-glare': 0.5,
-                      }}
-                      className="tilt-wrapper"
-                    >
-                      <div className="image-wrapper">
-                        <img
-                          src={Image4}
-                          alt="New Arrival 4"
-                          className="arrival-image"
-                        />
-                        <div className="image-overlay">
-                          <img
-                            src={overlayMap[Image4]}
-                            alt="Overlay Image 4"
-                            className="arrival-image"
-                          />
-                        </div>
-                        <div className="glossy-overlay"></div>
-                      </div>
-                      <p className="image-caption">Bits repeat (Green)</p>
-                      <p className="image-price">{currency} {convertPrice(8499)}</p>
-                    </Tilt>
-                  </Col>
-                  <Col md={4} data-aos="fade-left">
-                    <Tilt
-                      options={{
-                        max: 25,
-                        scale: 1.05,
-                        speed: 400,
-                        glare: true,
-                        'max-glare': 0.5,
-                      }}
-                      className="tilt-wrapper"
-                    >
-                      <div className="image-wrapper">
-                        <img
-                          src={Image5}
-                          alt="New Arrival 5"
-                          className="arrival-image"
-                        />
-                        <div className="image-overlay">
-                          <img
-                            src={overlayMap[Image5]}
-                            alt="Overlay Image 5"
-                            className="arrival-image"
-                          />
-                        </div>
-                        <div className="glossy-overlay"></div>
-                      </div>
-                      <p className="image-caption">It's feed time (Green)</p>
-                     <p className="image-price">{currency} {convertPrice(8499)}</p>
-                    </Tilt>
-                  </Col>
-                </Row>
-              </Carousel.Item>
-            </Carousel>
+              options={{ max: 25, scale: 1.05, speed: 400, glare: true, 'max-glare': 0.5 }}
+              className="tilt-wrapper"
+            >
+              <div className="image-wrapper">
+                <img
+                 onClick={() => handleProductClick(product._id)}
+                  src={`https://api.neightivglobal.com${product.images[0]}`}
+                  alt={product.name}
+                  className="arrival-image"
+                />
+                {product.images[1] && (
+                  <div className="image-overlay">
+                    <img
+                     onClick={() => handleProductClick(product._id)}
+                      src={`https://api.neightivglobal.com${product.images[1]}`}
+                      alt={`${product.name} overlay`}
+                      className="arrival-image"
+                    />
+                  </div>
+                )}
+                <div className="glossy-overlay"></div>
+              </div>
+              <p className="image-caption">{product.name}</p>
+              <p className="image-price">{currency} {convertPrice(product.amount)}</p>
+            </Tilt>
+          </Col>
+        ))}
+      </Row>
+    </Carousel.Item>
+  ))}
+</Carousel>
+
 
             <Button
             onClick={handleShopNowClick}
@@ -472,161 +353,44 @@ const { convertPrice, currency } = useCurrency();
       <Row>
         <Col md={12} className="text-center">
           <h2 style={{ color: '#fff', marginBottom: '40px' }}>New Arrivals</h2>
-          
-             <Carousel
+
+          <Carousel
             indicators={false}
-            interval={3000} // Auto-scroll every 3 seconds
+            interval={3000}
             controls={true}
             pause="hover"
-            style={{
-              height: '', // Adjust the carousel to take 80% of the viewport height
-              display: 'flex',
-              alignItems: 'center',
-            }}
+            style={{ display: 'flex', alignItems: 'center' }}
           >
-
-             <Carousel.Item>
-              <div className="carousel-item-content" style={{ height: '100%' }}>
-                <div className="image-wrapper" style={{ height: '100%' }}>
-                  <img
-                    src={layout6}
-                    alt="New Arrival 1"
-                    className="arrival-image"
-                    style={{ objectFit: 'cover', width: '100%', height: '100%' }}
-                  />
-                  <div className="image-overlay">
+            {newArrivals.map((product) => (
+              <Carousel.Item key={product._id}>
+                <div
+                  className="carousel-item-content"
+                  style={{ height: '100%', cursor: 'pointer' }}
+                  onClick={() => navigate(`/product/${product._id}`)}
+                >
+                  <div className="image-wrapper" style={{ height: '100%' }}>
                     <img
-                      src={overlayMap[layout6]}
-                      alt="Overlay Image 1"
+                      src={`https://api.neightivglobal.com${product.images[0]}`}
+                      alt={product.name}
                       className="arrival-image"
+                      style={{ objectFit: 'cover', width: '100%', height: '100%' }}
                     />
+                    {product.images[1] && (
+                      <div className="image-overlay">
+                        <img
+                          src={`https://api.neightivglobal.com${product.images[1]}`}
+                          alt={`${product.name} overlay`}
+                          className="arrival-image"
+                        />
+                      </div>
+                    )}
+                    <div className="glossy-overlay"></div>
                   </div>
-                  <div className="glossy-overlay"></div>
+                  <p className="image-caption">{product.name}</p>
+                  <p className="image-price">{currency} {convertPrice(product.amount)}</p>
                 </div>
-                <p className="image-caption">Entry to the tack room</p>
-               <p className="image-price">{currency} {convertPrice(8499)}</p>
-              </div>
-            </Carousel.Item>
-
-            <Carousel.Item>
-              <div className="carousel-item-content" style={{ height: '100%' }}>
-                <div className="image-wrapper" style={{ height: '100%' }}>
-                  <img
-                    src={Image2}
-                    alt="New Arrival 1"
-                    className="arrival-image"
-                    style={{ objectFit: 'cover', width: '100%', height: '100%' }}
-                  />
-                  <div className="image-overlay">
-                    <img
-                      src={overlayMap[Image2]}
-                      alt="Overlay Image 1"
-                      className="arrival-image"
-                    />
-                  </div>
-                  <div className="glossy-overlay"></div>
-                </div>
-                <p className="image-caption">The grazing synergy</p>
-                <p className="image-price">{currency} {convertPrice(8499)}</p>
-              </div>
-            </Carousel.Item>
-
-           <Carousel.Item>
-              <div className="carousel-item-content" style={{ height: '100%' }}>
-                <div className="image-wrapper" style={{ height: '100%' }}>
-                  <img
-                    src={Image3}
-                    alt="New Arrival 2"
-                    className="arrival-image"
-                    style={{ objectFit: 'cover', width: '100%', height: '100%' }}
-                  />
-                  <div className="image-overlay">
-                    <img
-                      src={overlayMap[Image3]}
-                      alt="Overlay Image 2"
-                      className="arrival-image"
-                    />
-                  </div>
-                  <div className="glossy-overlay"></div>
-                </div>
-                <p className="image-caption">Saddle power</p>
-<p className="image-price">{currency} {convertPrice(8499)}</p>
-              </div>
-            </Carousel.Item>
-
-
-            <Carousel.Item>
-              <div className="carousel-item-content" style={{ height: '100%' }}>
-                <div className="image-wrapper" style={{ height: '100%' }}>
-                  <img
-                    src={layout1}
-                    alt="New Arrival 3"
-                    className="arrival-image"
-                    style={{ objectFit: 'cover', width: '100%', height: '100%' }}
-                  />
-                  <div className="image-overlay">
-                    <img
-                      src={overlayMap[layout1]}
-                      alt="Overlay Image 3"
-                      className="arrival-image"
-                    />
-                  </div>
-                  <div className="glossy-overlay"></div>
-                </div>
-                <p className="image-caption">Saddles in Queue</p>
-             <p className="image-price">{currency} {convertPrice(8499)}</p>
-              </div>
-            </Carousel.Item>
-
-             <Carousel.Item>
-              <div className="carousel-item-content" style={{ height: '100%' }}>
-                <div className="image-wrapper" style={{ height: '100%' }}>
-                  <img
-                    src={Image4}
-                    alt="New Arrival 3"
-                    className="arrival-image"
-                    style={{ objectFit: 'cover', width: '100%', height: '100%' }}
-                  />
-                  <div className="image-overlay">
-                    <img
-                      src={overlayMap[Image4]}
-                      alt="Overlay Image 3"
-                      className="arrival-image"
-                    />
-                  </div>
-                  <div className="glossy-overlay"></div>
-                </div>
-                <p className="image-caption">Bits repeat (Green)</p>
-              <p className="image-price">{currency} {convertPrice(8499)}</p>
-              </div>
-            </Carousel.Item>
-
-            <Carousel.Item>
-              <div className="carousel-item-content" style={{ height: '100%' }}>
-                <div className="image-wrapper" style={{ height: '100%' }}>
-                  <img
-                    src={Image5}
-                    alt="New Arrival 3"
-                    className="arrival-image"
-                    style={{ objectFit: 'cover', width: '100%', height: '100%' }}
-                  />
-                  <div className="image-overlay">
-                    <img
-                      src={overlayMap[Image5]}
-                      alt="Overlay Image 3"
-                      className="arrival-image"
-                    />
-                  </div>
-                  <div className="glossy-overlay"></div>
-                </div>
-                <p className="image-caption">It's feed time (Green)</p>
-               <p className="image-price">{currency} {convertPrice(8499)}</p>
-              </div>
-            </Carousel.Item>
-
-            
-            
-            {/* Add more items as needed */}
+              </Carousel.Item>
+            ))}
           </Carousel>
 
           <Button
@@ -646,6 +410,7 @@ const { convertPrice, currency } = useCurrency();
     </Container>
   </section>
 </div>
+
 
 
 
@@ -772,7 +537,7 @@ const { convertPrice, currency } = useCurrency();
             </p>
 
             <div
-            onClick={handleShopNowClick}
+            onClick={handleCustomClick}
               data-aos="zoom-in-up"
               style={{
                 backgroundColor: '#5b342d',
@@ -780,6 +545,7 @@ const { convertPrice, currency } = useCurrency();
                 padding: '10px 20px',
                 textAlign: 'center',
                 fontSize: '16px',
+                cursor:'pointer',
                 fontWeight: '500',
                 marginTop: '30px',
                 display: 'inline-block',
@@ -852,7 +618,7 @@ const { convertPrice, currency } = useCurrency();
               World through<br />our lenses
             </h3>
             <Button
-onClick={handleShopNowClick}
+onClick={handleourworldClick}
               style={{
                 backgroundColor: '#fff5e4',
                 color: '#5b342d',
@@ -968,7 +734,7 @@ onClick={handleShopNowClick}
                 World through<br />our lenses
               </h3>
               <Button
-                onClick={handleShopNowClick}
+                onClick={handleourworldClick}
                 style={{
                   backgroundColor: '#fff5e4',
                   color: '#5b342d',
