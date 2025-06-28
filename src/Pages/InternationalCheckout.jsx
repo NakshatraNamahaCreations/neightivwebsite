@@ -563,7 +563,7 @@ const shippingUSD = getConvertedShippingCharge();
                           width: '200px',
                         }}
                       >
-                        {loading ? 'Processing...' : 'Pay with PayPal (DHL)'}
+                        {loading ? 'Processing...' : 'Pay Now'}
                       </Button>
                     </div>
                   </div>
