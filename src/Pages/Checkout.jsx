@@ -508,7 +508,7 @@ const Checkout = () => {
                             marginTop: '10px',
                           }}
                         >
-                          Pay with PhonePe
+                          Pay Now
                         </Button>
                       </>
                     )}

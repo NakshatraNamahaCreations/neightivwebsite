@@ -311,7 +311,7 @@ const Cart = () => {
                             width: '100%',
                           }}
                         >
-                          {loading ? 'Processing...' : 'Pay with PayPal'}
+                          {loading ? 'Processing...' : 'Pay Now'}
                         </Button>
                       )}
                       {error && (
