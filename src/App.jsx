@@ -28,6 +28,7 @@ import Login from './Pages/Login';
 import InternationalCheckout from './Pages/InternationalCheckout';
 import axios from 'axios';
 import countryList from 'country-list-js';
+import Confirmation from './Pages/Confirmation';
 
 const fallbackExchangeRates = {
   INR: 1,
@@ -317,6 +318,14 @@ const handleCountryChange = (countryCode) => {
               element={
                 <Layout>
                   <InternationalCheckout />
+                </Layout>
+              }
+            />
+             <Route
+              path="/orderConfirmation"
+              element={
+                <Layout>
+                  <Confirmation />
                 </Layout>
               }
             />

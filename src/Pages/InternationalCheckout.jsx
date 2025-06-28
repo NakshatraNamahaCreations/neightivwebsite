@@ -294,123 +294,8 @@ const InternationalCheckout = () => {
 //   }
 // };
 
-// const handleDHLAndPayPal = async () => {
-//   if (!validateShippingDetails()) return;
 
-//   setLoading(true);
-//   setError(null);
-
-//   try {
-//     const shipmentDetails = calculateShipmentDetails();
-//     const totalAmount = Number(calculateSubtotal()).toFixed(2);
-
-//     const shipmentResponse = await axios.post('https://api.neightivglobal.com/api/dhl/create-shipment', {
-//       receiverName: shippingDetails.receiverName,
-//       receiverAddress: shippingDetails.receiverAddress,
-//       receiverCity: shippingDetails.receiverCity,
-//       receiverPostalCode: shippingDetails.receiverPostalCode,
-//       receiverStateCode: shippingDetails.receiverStateCode,
-//       receiverPhone: shippingDetails.receiverPhone,
-//       receiverCountryCode: shippingDetails.receiverCountryCode,
-//       declaredValue: totalAmount,
-//       currency: currency,
-//       weight: shipmentDetails.weight,
-//       length: shipmentDetails.length,
-//       width: shipmentDetails.width,
-//       height: shippingDetails.height,
-//       cartItems: cartItems.map((item) => {
-//         const normalizedItem = normalizeItem(item);
-//         const convertedPrice = Number(convertPrice(normalizedItem.totalPrice)).toFixed(2);
-//         return {
-//           name: normalizedItem.name,
-//           price: convertedPrice,
-//           quantity: normalizedItem.quantity,
-//           sku: normalizedItem.id,
-//         };
-//       }),
-//       freightCharge: getConvertedShippingCharge(),
-//     });
-
-//     console.log('📦 DHL Shipment Response:', shipmentResponse.data);
-
-//     // Step 1: Extract the inner XML result
-//     const resultMatch = shipmentResponse.data.match(/<PostShipment_CSBVResult>(.*?)<\/PostShipment_CSBVResult>/s);
-//     const resultText = resultMatch ? resultMatch[1].trim() : '';
-
-//     // Step 2: Extract only the invoice PDF with improved regex
-//     const invoicePdfMatch = resultText.match(/Invoice Path\s*:\s*(https:\/\/www\.dhlindiaplugin\.com\/FileUpload\/Invoice\/[^;\s]+\.pdf)/i);
-//     const invoicePdfUrl = invoicePdfMatch?.[1]?.trim();
-
-//     console.log('Invoice PDF URL:', invoicePdfUrl); // Debug log
-
-//     // Step 3: Function to open URL with validation
-//     const openPdfInTab = (url, name) => {
-//       if (url && /^https?:\/\/.*\.pdf$/i.test(url)) {
-//         try {
-//           const newWindow = window.open(url, '_blank', 'noopener,noreferrer');
-//           if (!newWindow) {
-//             console.warn(`Failed to open ${name} PDF: Pop-up blocked or browser issue`);
-//             setError(`Please allow pop-ups to open the ${name} PDF.`);
-//           } else {
-//             console.log(`Opened ${name} PDF: ${url}`);
-//           }
-//         } catch (err) {
-//           console.error(`Error opening ${name} PDF:`, err);
-//           setError(`Failed to open ${name} PDF. Please try again.`);
-//         }
-//       } else {
-//         console.warn(`${name} PDF URL not found or invalid: ${url}`);
-//         setError(`${name} PDF URL not found or invalid.`);
-//       }
-//     };
-
-//     // Step 4: Open only the invoice PDF
-//     if (invoicePdfUrl) {
-//       openPdfInTab(invoicePdfUrl, 'Invoice');
-//     } else {
-//       console.warn('Invoice PDF URL not found');
-//       setError('Invoice PDF URL not found.');
-//     }
-
-//     // Step 5: Initiate PayPal Payment
-//     const tokenResponse = await axios.post('https://api.neightivglobal.com/api/paypal/token');
-//     const accessToken = tokenResponse.data.access_token;
-
-//     const orderResponse = await axios.post(
-//       'https://api.neightivglobal.com/api/paypal/create-order',
-//       {
-//         amount: totalUSD,
-//         currency_code: 'USD',
-//         cartItems: cartItems.map((item) => {
-//           const normalizedItem = normalizeItem(item);
-//           return {
-//             name: normalizedItem.name,
-//             price: parseFloat((normalizedItem.totalPrice * exchangeRate).toFixed(2)),
-//             quantity: normalizedItem.quantity,
-//             sku: normalizedItem.id,
-//           };
-//         }),
-//       },
-//       {
-//         headers: { Authorization: `Bearer ${accessToken}` },
-//       }
-//     );
-
-//     const approvalLink = orderResponse.data.links.find((link) => link.rel === 'approve');
-//     if (approvalLink) {
-//       window.location.href = approvalLink.href;
-//     } else {
-//       throw new Error('No approval link found in PayPal response.');
-//     }
-
-//   } catch (err) {
-//     console.error('❌ Error:', err.response?.data || err.message);
-//     setError(err.response?.data?.error || err.message || 'Failed to process order or payment. Please try again.');
-//   } finally {
-//     setLoading(false);
-//   }
-// };
-
+// working
 const handleDHLAndPayPal = async () => {
   if (!validateShippingDetails()) return;
 
@@ -456,9 +341,15 @@ const handleDHLAndPayPal = async () => {
     const urls = resultText.match(/https?:\/\/[^\s;]+/g);
     if (urls && urls.length > 0) {
       // 🔓 Open all URLs (before any other await!)
-      urls.forEach((url) => {
-        window.open(url, '_blank', 'noopener,noreferrer');
-      });
+      // urls.forEach((url) => {
+      //   window.open(url, '_blank', 'noopener,noreferrer');
+      // });
+//       navigate('/orderConfirmation', {
+//   state: {
+//     invoiceUrls: urls,
+//   },
+// });
+
     } else {
       console.warn('No URLs found in DHL response');
       setError('No PDF URL found from DHL.');
@@ -471,26 +362,71 @@ const handleDHLAndPayPal = async () => {
     const exchangeRate = 1; 
   
 
-    const totalUSD = calculateTotal();
+const totalUSD = calculateTotal(); 
+
+const subtotalUSD = calculateSubtotal(); // just product prices
+const shippingUSD = getConvertedShippingCharge();
+
+
+    // const orderResponse = await axios.post(
+    //   'https://api.neightivglobal.com/api/paypal/create-order',
+    //   {
+    //     amount: totalUSD,
+    //     currency_code: 'USD',
+    //      cartItems: [
+    //   ...cartItems.map((item) => {
+    //     const normalizedItem = normalizeItem(item);
+    //     const price = Number(convertPrice(normalizedItem.totalPrice)).toFixed(2);
+    //     return {
+    //       name: normalizedItem.name,
+    //       price: parseFloat(price),
+    //       quantity: normalizedItem.quantity,
+    //       sku: normalizedItem.id,
+    //     };
+    //   }),
+    //   {
+    //     name: 'Shipping',
+    //     price: parseFloat(shippingUSD),
+    //     quantity: 1,
+    //     sku: 'shipping_fee',
+    //   },
+    // ],
+    //   },
+    //   {
+    //     headers: { Authorization: `Bearer ${accessToken}` },
+    //   }
+    // );
+
     const orderResponse = await axios.post(
-      'https://api.neightivglobal.com/api/paypal/create-order',
+  'https://api.neightivglobal.com/api/paypal/create-order',
+  {
+    amount: totalUSD,
+    currency_code: 'USD',
+    cartItems: [
+      ...cartItems.map((item) => {
+        const normalizedItem = normalizeItem(item);
+        const price = Number(convertPrice(normalizedItem.totalPrice)).toFixed(2);
+        return {
+          name: normalizedItem.name,
+          price: parseFloat(price),
+          quantity: normalizedItem.quantity,
+          sku: normalizedItem.id,
+        };
+      }),
       {
-        amount: totalUSD,
-        currency_code: 'USD',
-        cartItems: cartItems.map((item) => {
-          const normalizedItem = normalizeItem(item);
-          return {
-            name: normalizedItem.name,
-            price: parseFloat((normalizedItem.totalPrice * exchangeRate).toFixed(2)),
-            quantity: normalizedItem.quantity,
-            sku: normalizedItem.id,
-          };
-        }),
+        name: 'Shipping',
+        price: parseFloat(shippingUSD),
+        quantity: 1,
+        sku: 'shipping_fee',
       },
-      {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      }
-    );
+    ],
+    return_url: `${window.location.origin}/paypal-success?invoiceUrls=${encodeURIComponent(JSON.stringify(urls))}`, // 🔁 Return URL after payment
+    cancel_url: `${window.location.origin}/cancel`,
+  },
+  {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  }
+);
 
     const approvalLink = orderResponse.data.links.find((link) => link.rel === 'approve');
     if (approvalLink) {
