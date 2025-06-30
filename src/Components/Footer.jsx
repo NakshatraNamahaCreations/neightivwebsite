@@ -344,7 +344,7 @@ const Footer = () => {
       style={{
         display: 'block',
         width: '100%',
-        fontSize: '20px',
+        fontSize: '18px',
         color: '#FBEEDE',
         backgroundColor: '#5b342d',
         textAlign: 'center',
@@ -359,7 +359,7 @@ const Footer = () => {
       style={{
         display: 'block',
         width: '100%',
-        fontSize: '20px',
+        fontSize: '18px',
         color: '#FBEEDE',
         backgroundColor: '#5b342d',
         textAlign: 'center',
@@ -374,7 +374,7 @@ const Footer = () => {
       style={{
         display: 'block',
         width: '100%',
-        fontSize: '20px',
+        fontSize: '18px',
         color: '#FBEEDE',
         backgroundColor: '#5b342d',
         textAlign: 'center',
@@ -389,7 +389,7 @@ const Footer = () => {
       style={{
         display: 'block',
         width: '100%',
-        fontSize: '20px',
+        fontSize: '18px',
         color: '#FBEEDE',
         backgroundColor: '#5b342d',
         textAlign: 'center',
@@ -404,7 +404,7 @@ const Footer = () => {
       style={{
         display: 'block',
         width: '100%',
-        fontSize: '20px',
+        fontSize: '18px',
         color: '#FBEEDE',
         backgroundColor: '#5b342d',
         textAlign: 'center',
@@ -423,7 +423,7 @@ const Footer = () => {
       style={{
         display: 'block',
         width: '100%',
-        fontSize: '20px',
+        fontSize: '18px',
         color: '#FBEEDE',
         backgroundColor: '#5b342d',
         textAlign: 'center',
@@ -438,25 +438,43 @@ const Footer = () => {
       style={{
         display: 'block',
         width: '100%',
-        fontSize: '20px',
+        fontSize: '18px',
         color: '#FBEEDE',
         backgroundColor: '#5b342d',
+        textAlign: 'center',
+        textDecoration: 'none',
+        
+        // padding: '10px',
+      }}
+    >
+      Terms and Conditions
+    </a>
+     <a
+      href="/shipping-policy"
+      style={{
+        display: 'block',
+        width: '100%',
+        fontSize: '18px',
+        color: '#FBEEDE',
+        backgroundColor: '#5b342d',
+           whiteSpace:'nowrap',
         textAlign: 'center',
         textDecoration: 'none',
         // padding: '10px',
       }}
     >
-      Terms and Conditions
+    Shipping Policy
     </a>
     <a
       href="/privacy-policy"
       style={{
         display: 'block',
         width: '100%',
-        fontSize: '20px',
+        fontSize: '18px',
         color: '#FBEEDE',
         backgroundColor: '#5b342d',
         textAlign: 'center',
+        whiteSpace:'nowrap',
         textDecoration: 'none',
         // padding: '10px',
       }}
