@@ -1,171 +1,66 @@
-// import React from 'react';
-// import { Container, Row, Col, Form, Button } from 'react-bootstrap';
-// import { FaPhoneAlt, FaEnvelope, FaInstagram } from 'react-icons/fa';
-// import contactbanner from '../assets/contactusbanner.png';
-// import Footer from '../Components/Footer';
-
-// const ContactSection = () => {
-//   return (
-//     <>
-//     <section style={{ backgroundColor: '#fbeede', paddingTop: '0', paddingBottom: '60px' }}>
-//       {/* Banner Section */}
-//       <div
-//         style={{
-//           width: '100%',
-//           height: '400px',
-//           backgroundImage: `url(${contactbanner})`,
-//           backgroundSize: 'cover',
-//           backgroundPosition: 'center',
-//           display: 'flex',
-//           alignItems: 'flex-end',
-//           padding: '30px 60px',
-//         }}
-//       >
-//         <h1 style={{
-//           color: '#fff',
-//           fontSize: '48px',
-//           fontWeight: 'bold',
-//           fontFamily: 'Georgia, serif',
-//           textShadow: '1px 1px 2px rgba(0,0,0,0.5)',
-//         }}>
-//         Let's have a talk
-//         </h1>
-//       </div>
-
-//       {/* Contact Info and Form */}
-//       <Container style={{ marginTop: '40px' }}>
-//         <Row style={{
-//           border: '1px solid #5b342d',
-//           padding: '40px',
-//           margin: 'auto',
-//         }}>
-//           {/* Left Contact Info */}
-//           <Col md={6} style={{ borderRight: '1px solid #5b342d' }}>
-//             <p style={{
-//               color: '#3f2c1e',
-//               fontSize: '20px',
-//               fontFamily: 'Georgia, serif',
-//               lineHeight: '1.7',
-//               marginBottom: '40px',
-//             }}>
-//               We’re here to help with any questions you may have. Feel free to reach out to us anytime!
-//             </p>
-
-//             <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
-//               <div style={styles.iconCircle}>
-//                 <FaPhoneAlt color="white" />
-//               </div>
-//               <span style={styles.contactText}>+91-7338451937</span>
-//             </div>
-
-//             <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
-//               <div style={styles.iconCircle}>
-//                 <FaEnvelope color="white" />
-//               </div>
-//               <span style={styles.contactText}>contact@neightivglobal.com</span>
-//             </div>
-
-//             <div style={{ display: 'flex', alignItems: 'center' }}>
-//               <div style={styles.iconCircle}>
-//                 <FaInstagram color="white" />
-//               </div>
-//               <span style={styles.contactText}>Follow us on Instagram</span>
-//             </div>
-//           </Col>
-
-//           {/* Right Contact Form */}
-//           <Col md={6}>
-//             <Form>
-//               <Row>
-//                 <Col>
-//                   <Form.Group>
-//                     <Form.Label style={styles.label}>Name</Form.Label>
-//                     <Form.Control type="text" style={styles.input} />
-//                   </Form.Group>
-//                 </Col>
-//                 <Col>
-//                   <Form.Group>
-//                     <Form.Label style={styles.label}>Email</Form.Label>
-//                     <Form.Control type="email" style={styles.input} />
-//                   </Form.Group>
-//                 </Col>
-//               </Row>
-//               <Form.Group style={{ marginTop: '20px' }}>
-//                 <Form.Label style={styles.label}>Message</Form.Label>
-//                 <Form.Control as="textarea" rows={4} style={styles.input} placeholder="Type your message here" />
-//               </Form.Group>
-//               <Button style={styles.button}>Submit</Button>
-//             </Form>
-//           </Col>
-//         </Row>
-//       </Container>
-//     </section>
-//     <Footer/>
-//     </>
-//   );
-// };
-
-// const styles = {
-//   iconCircle: {
-//     width: '36px',
-//     height: '36px',
-//     backgroundColor: '#5b342d',
-//     borderRadius: '50%',
-//     display: 'flex',
-//     justifyContent: 'center',
-//     alignItems: 'center',
-//     marginRight: '16px',
-//   },
-//   contactText: {
-//     color: '#3f2c1e',
-//     fontSize: '17px',
-//     fontFamily: 'Georgia, serif',
-//   },
-//   label: {
-//     color: '#3f2c1e',
-//     fontFamily: 'Georgia, serif',
-//     fontSize: '16px',
-//     marginBottom: '8px',
-//   },
-//   input: {
-//     border: 'none',
-//     borderBottom: '1px solid #3f2c1e',
-//     borderRadius: '0',
-//     backgroundColor: 'transparent',
-//     color: '#3f2c1e',
-//   },
-//   button: {
-//     backgroundColor: '#5b342d',
-//     color: 'white',
-//     border: 'none',
-//     marginTop: '30px',
-//     padding: '10px 30px',
-//     fontWeight: 'bold',
-//     borderRadius: '2px',
-//   }
-// };
-
-// export default ContactSection;
-
-
-
-
-import React from 'react';
-import { Container, Row, Col, Form, Button } from 'react-bootstrap';
+import React, { useState } from 'react';
+import { Container, Row, Col, Form, Button, Spinner } from 'react-bootstrap';
 import { FaPhoneAlt, FaEnvelope, FaInstagram } from 'react-icons/fa';
-import contactbanner from '../assets/contactusbanner.png';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import axios from 'axios';
 import Footer from '../Components/Footer';
 import styles from '../stylesheets/ContactSection.module.css';
 
 const ContactSection = () => {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    message: '',
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const handleInputChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setError(null); // Clear error on input change
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // Validate form inputs
+    if (!formData.name || !formData.email || !formData.message) {
+      setError('Please fill in all fields.');
+      toast.error('Please fill in all fields.');
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setError('Please enter a valid email address.');
+      toast.error('Please enter a valid email address.');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await axios.post('https://api.neightivglobal.com/api/contact', formData);
+      toast.success('Your message has been sent successfully!');
+      setFormData({ name: '', email: '', message: '' }); // Reset form
+    } catch (err) {
+      console.error('Contact Form Submission Error:', err.response?.data || err.message);
+      setError(err.response?.data?.message || 'Failed to send your message. Please try again.');
+      toast.error('Failed to send your message. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <>
+      <ToastContainer position="top-right" autoClose={5000} />
       <section className={styles.sectionBg}>
         {/* Banner Section */}
         <div className={styles.banner}>
-          <h1 className={styles.bannerTitle}>
-            Let's have a talk
-          </h1>
+          <h1 className={styles.bannerTitle}>Let's have a talk</h1>
         </div>
 
         {/* Contact Info and Form */}
@@ -201,26 +96,56 @@ const ContactSection = () => {
 
             {/* Right Contact Form */}
             <Col md={6} className={styles.formCol}>
-              <Form>
+              <Form onSubmit={handleSubmit}>
                 <Row>
                   <Col xs={12} md={6}>
                     <Form.Group>
-                      <Form.Label className={styles.label}>Name</Form.Label>
-                      <Form.Control type="text" className={styles.input} />
+                      <Form.Label className={styles.label}>Name *</Form.Label>
+                      <Form.Control
+                        type="text"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleInputChange}
+                        className={styles.input}
+                        required
+                      />
                     </Form.Group>
                   </Col>
                   <Col xs={12} md={6}>
                     <Form.Group>
-                      <Form.Label className={styles.label}>Email</Form.Label>
-                      <Form.Control type="email" className={styles.input} />
+                      <Form.Label className={styles.label}>Email *</Form.Label>
+                      <Form.Control
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        className={styles.input}
+                        required
+                      />
                     </Form.Group>
                   </Col>
                 </Row>
                 <Form.Group className={styles.textareaGroup}>
-                  <Form.Label className={styles.label}>Message</Form.Label>
-                  <Form.Control as="textarea" rows={4} className={styles.input} placeholder="Type your message here" />
+                  <Form.Label className={styles.label}>Message *</Form.Label>
+                  <Form.Control
+                    as="textarea"
+                    rows={4}
+                    name="message"
+                    value={formData.message}
+                    onChange={handleInputChange}
+                    className={styles.input}
+                    placeholder="Type your message here"
+                    required
+                  />
                 </Form.Group>
-                <Button className={styles.button}>Submit</Button>
+                <Button type="submit" className={styles.button} disabled={loading}>
+                  {loading ? <Spinner animation="border" size="sm" /> : 'Submit'}
+                </Button>
+                {error && (
+                  <p style={{ color: '#ff0000', fontSize: '12px', marginTop: '10px' }}>
+                    {error}
+                  </p>
+                )}
               </Form>
             </Col>
           </Row>

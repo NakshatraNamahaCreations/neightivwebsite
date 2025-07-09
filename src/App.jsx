@@ -57,16 +57,35 @@ const handleCountryChange = (countryCode) => {
   };
 
   // Convert price from INR to target currency
+  // const convertPrice = (priceInINR) => {
+  //   if (!currency || !exchangeRates[currency]) {
+  //     console.warn(`App: No exchange rate for ${currency}, returning INR ${priceInINR}`);
+  //     return priceInINR.toFixed(2);
+  //   }
+  //   const rate = exchangeRates[currency];
+  //   const converted = (priceInINR * rate).toFixed(2);
+  //   console.log(`App: Converting ${priceInINR} INR to ${converted} ${currency} (rate: ${rate})`);
+  //   return converted;
+  // };
+
+
   const convertPrice = (priceInINR) => {
-    if (!currency || !exchangeRates[currency]) {
-      console.warn(`App: No exchange rate for ${currency}, returning INR ${priceInINR}`);
-      return priceInINR.toFixed(2);
-    }
-    const rate = exchangeRates[currency];
-    const converted = (priceInINR * rate).toFixed(2);
-    console.log(`App: Converting ${priceInINR} INR to ${converted} ${currency} (rate: ${rate})`);
-    return converted;
-  };
+  const num = Number(priceInINR);
+  if (isNaN(num)) {
+    console.warn(`App: Invalid INR price passed to convertPrice():`, priceInINR);
+    return "0.00";
+  }
+
+  if (!currency || !exchangeRates[currency]) {
+    console.warn(`App: No exchange rate for ${currency}, returning INR ${num}`);
+    return num.toFixed(2);
+  }
+
+  const rate = exchangeRates[currency];
+  const converted = (num * rate).toFixed(2);
+  console.log(`App: Converting ${num} INR to ${converted} ${currency} (rate: ${rate})`);
+  return converted;
+};
 
   useEffect(() => {
     AOS.init({

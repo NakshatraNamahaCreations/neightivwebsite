@@ -1,9 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Button, Form } from 'react-bootstrap';
+import { Container, Row, Col, Button, Form, Spinner } from 'react-bootstrap';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Footer from '../Components/Footer';
+
+// Base API URL for local development
+const API_BASE_URL = 'https://api.neightivglobal.com';
 
 const Checkout = () => {
   const { state } = useLocation();
@@ -69,7 +74,8 @@ const Checkout = () => {
 
     try {
       setError(null);
-      const response = await axios.get('https://api.neightivglobal.com/api/shiprocket/courier/serviceability', {
+      setLoading(true);
+      const response = await axios.get(`${API_BASE_URL}/api/shiprocket/courier/serviceability`, {
         params: {
           pickup_postcode: '560034',
           delivery_postcode: shippingDetails.pincode,
@@ -91,6 +97,8 @@ const Checkout = () => {
       console.error('Serviceability Error:', err.response?.data || err.message);
       setError('Unable to fetch shipping options. Please check PIN code or try again later.');
       setShippingOptions([]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -142,14 +150,14 @@ const Checkout = () => {
         const normalizedItem = normalizeItem(item);
         return {
           name: normalizedItem.name,
-          sku: normalizedItem.sku,
+          sku: normalizedItem.sku || 'N/A',
           quantity: normalizedItem.quantity,
           price: normalizedItem.totalPrice,
           base_price: normalizedItem.basePrice,
         };
       }),
       payment_method: 'Prepaid',
-      sub_total: grandTotal + (selectedCourier?.rate || 0),
+      sub_total: grandTotal,
       shipping_cost: selectedCourier?.rate || 0,
       terms_and_conditions: termsAndConditions,
       length: 10,
@@ -159,11 +167,19 @@ const Checkout = () => {
     };
 
     try {
-      const response = await axios.post('https://api.neightivglobal.com/api/shiprocket/orders/create', payload);
+      const response = await axios.post(`https://api.neightivglobal.com/api/shiprocket/orders/create`, payload);
+      const { shiprocketOrderId, shipmentId, emailSent } = response.data;
+
+      if (emailSent.customer && emailSent.business) {
+        toast.success('Order created successfully! A confirmation email has been sent to your email address.');
+      } else {
+        toast.warn('Order created successfully, but there was an issue sending one or both confirmation emails.');
+      }
+
       navigate('/order-confirmation', {
         state: {
-          shiprocketOrderId: response.data.shiprocketOrderId,
-          shipmentId: response.data.shipmentId,
+          shiprocketOrderId,
+          shipmentId,
         },
       });
     } catch (err) {
@@ -198,10 +214,11 @@ const Checkout = () => {
 
     const { grandTotal } = calculateTotalsINR();
     const amountToCharge = parseFloat((grandTotal + selectedCourier.rate).toFixed(2));
-    // const amountToCharge = 1;
 
     const payload = {
-      amount: amountToCharge*100,// amountToCharge * 100,
+      // amount: amountToCharge * 100,
+      amount: 1 * 100,
+
       currency: 'INR',
       customerDetails: {
         name: shippingDetails.name,
@@ -209,7 +226,7 @@ const Checkout = () => {
         email: shippingDetails.email,
       },
       paypalOrderId: `ORDER_${Date.now()}`,
-      cartItems: cartItems.map(item => ({
+      cartItems: cartItems.map((item) => ({
         id: item.id || item._id || 'N/A',
         name: item.name,
         price: item.price,
@@ -218,7 +235,7 @@ const Checkout = () => {
       shippingDetails,
       selectedCourier,
       termsAndConditions,
-      redirectUrl: `${window.location.origin}/checkout?callback=true`, // Redirect back to this page with callback flag
+      redirectUrl: `${window.location.origin}/checkout?callback=true`,
     };
 
     console.log('PhonePe checkout payload:', JSON.stringify(payload, null, 2));
@@ -226,7 +243,7 @@ const Checkout = () => {
     setError(null);
 
     try {
-      const orderResponse = await axios.post('https://api.neightivglobal.com/api/phonepe/initiate-payment', payload);
+      const orderResponse = await axios.post(`https://api.neightivglobal.com/api/phonepe/initiate-payment`, payload);
       console.log('PhonePe response:', orderResponse.data);
 
       const { redirectUrl } = orderResponse.data;
@@ -238,29 +255,30 @@ const Checkout = () => {
     } catch (err) {
       console.error('PhonePe checkout error:', err.response?.data || err.message);
       setError(`Failed to initiate PhonePe payment: ${err.response?.data?.error || 'Please try again.'}`);
+    } finally {
       setLoading(false);
     }
   };
 
-  // Handle PhonePe callback
   useEffect(() => {
     const callback = searchParams.get('callback');
-    const transactionId = searchParams.get('transactionId'); // Assuming transactionId is passed back
+    const transactionId = searchParams.get('transactionId');
     if (callback === 'true' && transactionId) {
-      // Verify payment status
+      setLoading(true);
       axios
         .get(`https://api.neightivglobal.com/api/phonepe/verify-payment?transactionId=${transactionId}`)
         .then((response) => {
           if (response.data.success && response.data.paymentStatus === 'completed') {
-            createOrder(transactionId); // Call createOrder with transactionId
+            createOrder(transactionId);
           } else {
             setError('Payment verification failed. Please try again.');
-            setLoading(false);
           }
         })
         .catch((err) => {
           console.error('Payment verification error:', err.response?.data || err.message);
           setError('Failed to verify payment. Please try again.');
+        })
+        .finally(() => {
           setLoading(false);
         });
     }
@@ -268,6 +286,7 @@ const Checkout = () => {
 
   return (
     <>
+      <ToastContainer position="top-right" autoClose={5000} />
       <div style={{ backgroundColor: '#fbeede', padding: '50px 0', minHeight: '100vh', marginTop: '4%' }}>
         <Container>
           <Row className="justify-content-center">
@@ -386,6 +405,7 @@ const Checkout = () => {
                       </Form.Group>
                       <Button
                         type="submit"
+                        disabled={loading}
                         style={{
                           backgroundColor: '#000',
                           border: 'none',
@@ -394,7 +414,7 @@ const Checkout = () => {
                           fontWeight: '500',
                         }}
                       >
-                        Check Shipping Options
+                        {loading ? <Spinner animation="border" size="sm" /> : 'Check Shipping Options'}
                       </Button>
                     </Form>
 
@@ -461,7 +481,7 @@ const Checkout = () => {
                       </Col>
                       <Col style={{ textAlign: 'right' }}>
                         <p style={{ fontWeight: '500', color: '#000', fontSize: '16px', margin: 0 }}>
-                          Rs. {(calculateTotalsINR().grandTotal + (selectedCourier?.rate || 0)).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0, })}
+                          Rs. {(calculateTotalsINR().grandTotal + (selectedCourier?.rate || 0)).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </p>
                       </Col>
                     </Row>
@@ -474,43 +494,23 @@ const Checkout = () => {
                       </p>
                     </div>
 
-                    {/* Payment Buttons */}
                     {shippingDetails.country === 'India' && (
-                      <>
-                        {/* <Button
-                          // onClick={handlePayPalCheckout}
-                          disabled={loading}
-                          style={{
-                            backgroundColor: '#ffcc00',
-                            color: '#000',
-                            border: 'none',
-                            borderRadius: '0',
-                            padding: '10px 0',
-                            fontWeight: '500',
-                            width: '100%',
-                            marginTop: '10px',
-                          }}
-                        >
-                          Pay with PayPal
-                        </Button> */}
-
-                        <Button
-                          onClick={handlePhonePeCheckout}
-                          disabled={loading}
-                          style={{
-                            backgroundColor: '#3bb143',
-                            color: '#fff',
-                            border: 'none',
-                            borderRadius: '0',
-                            padding: '10px 0',
-                            fontWeight: '500',
-                            width: '100%',
-                            marginTop: '10px',
-                          }}
-                        >
-                          Pay Now
-                        </Button>
-                      </>
+                      <Button
+                        onClick={handlePhonePeCheckout}
+                        disabled={loading}
+                        style={{
+                          backgroundColor: '#3bb143',
+                          color: '#fff',
+                          border: 'none',
+                          borderRadius: '0',
+                          padding: '10px 0',
+                          fontWeight: '500',
+                          width: '100%',
+                          marginTop: '10px',
+                        }}
+                      >
+                        {loading ? <Spinner animation="border" size="sm" /> : 'Pay Now'}
+                      </Button>
                     )}
 
                     {error && (
