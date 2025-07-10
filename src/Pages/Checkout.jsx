@@ -167,7 +167,7 @@ const Checkout = () => {
     };
 
     try {
-      const response = await axios.post(`https://api.neightivglobal.com/api/shiprocket/orders/create`, payload);
+      const response = await axios.post(`${API_BASE_URL}/api/shiprocket/create-shipment`, payload);
       const { shiprocketOrderId, shipmentId, emailSent } = response.data;
 
       if (emailSent.customer && emailSent.business) {
@@ -184,79 +184,92 @@ const Checkout = () => {
       });
     } catch (err) {
       console.error('Order Creation Error:', err.response?.data || err.message);
-      setError(`Failed to create order: ${err.response?.data?.message || 'Please try again.'}`);
+      if (err.response?.data?.error?.includes("Shiprocket wallet")) {
+        setError('Unable to process order due to insufficient funds in our shipping account. Please contact support at support@neightivglobal.com.');
+      } else {
+        setError(`Failed to create order: ${err.response?.data?.message || 'Please try again.'}`);
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  const handlePhonePeCheckout = async () => {
+  const handleCheckout = async () => {
     if (cartItems.length === 0) {
       setError('Your cart is empty.');
       return;
     }
-
     if (!selectedCourier || !selectedCourier.rate || selectedCourier.rate <= 0) {
       setError('Please select a valid shipping option with a rate.');
       return;
     }
-
     if (!shippingDetails.name || !shippingDetails.address || !shippingDetails.city || !shippingDetails.state || !shippingDetails.country || !shippingDetails.pincode || !shippingDetails.phone || !shippingDetails.email) {
       setError('Please complete all shipping details.');
       return;
     }
 
-    const selectedCountry = shippingDetails.country;
-    if (selectedCountry !== 'India') {
-      setError('PhonePe is only available for payments in India.');
+    const phoneRegex = /^\+?\d{10,12}$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!phoneRegex.test(shippingDetails.phone)) {
+      setError('Invalid phone number (10-12 digits required).');
+      return;
+    }
+    if (!emailRegex.test(shippingDetails.email)) {
+      setError('Invalid email address.');
       return;
     }
 
-    const { grandTotal } = calculateTotalsINR();
-    const amountToCharge = parseFloat((grandTotal + selectedCourier.rate).toFixed(2));
+    if (shippingDetails.country === 'India') {
+      // Handle PhonePe payment for India
+      const { grandTotal } = calculateTotalsINR();
+      const amountToCharge = parseFloat((grandTotal + selectedCourier.rate).toFixed(2));
 
-    const payload = {
-      // amount: amountToCharge * 100,
-      amount: 1 * 100,
+      const payload = {
+        // amount: amountToCharge * 100, 
+        amount: 1 * 100, 
 
-      currency: 'INR',
-      customerDetails: {
-        name: shippingDetails.name,
-        phone: shippingDetails.phone,
-        email: shippingDetails.email,
-      },
-      paypalOrderId: `ORDER_${Date.now()}`,
-      cartItems: cartItems.map((item) => ({
-        id: item.id || item._id || 'N/A',
-        name: item.name,
-        price: item.price,
-        quantity: item.quantity,
-      })),
-      shippingDetails,
-      selectedCourier,
-      termsAndConditions,
-      redirectUrl: `${window.location.origin}/checkout?callback=true`,
-    };
+        currency: 'INR',
+        customerDetails: {
+          name: shippingDetails.name,
+          phone: shippingDetails.phone,
+          email: shippingDetails.email,
+        },
+        paypalOrderId: `ORDER_${Date.now()}`,
+        cartItems: cartItems.map((item) => ({
+          id: item.id || item._id || 'N/A',
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+        })),
+        shippingDetails,
+        selectedCourier,
+        termsAndConditions,
+        redirectUrl: `${window.location.origin}/order-confirmation?callback=true`,
+      };
 
-    console.log('PhonePe checkout payload:', JSON.stringify(payload, null, 2));
-    setLoading(true);
-    setError(null);
+      console.log('PhonePe checkout payload:', JSON.stringify(payload, null, 2));
+      setLoading(true);
+      setError(null);
 
-    try {
-      const orderResponse = await axios.post(`https://api.neightivglobal.com/api/phonepe/initiate-payment`, payload);
-      console.log('PhonePe response:', orderResponse.data);
+      try {
+        const orderResponse = await axios.post(`${API_BASE_URL}/api/phonepe/initiate-payment`, payload);
+        console.log('PhonePe response:', orderResponse.data);
 
-      const { redirectUrl } = orderResponse.data;
-      if (redirectUrl) {
-        window.location.href = redirectUrl;
-      } else {
-        throw new Error('Payment URL not received.');
+        const { redirectUrl } = orderResponse.data;
+        if (redirectUrl) {
+          window.location.href = redirectUrl;
+        } else {
+          throw new Error('Payment URL not received.');
+        }
+      } catch (err) {
+        console.error('PhonePe checkout error:', err.response?.data || err.message);
+        setError(`Failed to initiate PhonePe payment: ${err.response?.data?.error || 'Please try again.'}`);
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      console.error('PhonePe checkout error:', err.response?.data || err.message);
-      setError(`Failed to initiate PhonePe payment: ${err.response?.data?.error || 'Please try again.'}`);
-    } finally {
-      setLoading(false);
+    } else {
+      // Directly create order for non-India countries
+      createOrder();
     }
   };
 
@@ -266,7 +279,7 @@ const Checkout = () => {
     if (callback === 'true' && transactionId) {
       setLoading(true);
       axios
-        .get(`https://api.neightivglobal.com/api/phonepe/verify-payment?transactionId=${transactionId}`)
+        .get(`${API_BASE_URL}/api/phonepe/verify-payment?transactionId=${transactionId}`)
         .then((response) => {
           if (response.data.success && response.data.paymentStatus === 'completed') {
             createOrder(transactionId);
@@ -494,24 +507,22 @@ const Checkout = () => {
                       </p>
                     </div>
 
-                    {shippingDetails.country === 'India' && (
-                      <Button
-                        onClick={handlePhonePeCheckout}
-                        disabled={loading}
-                        style={{
-                          backgroundColor: '#3bb143',
-                          color: '#fff',
-                          border: 'none',
-                          borderRadius: '0',
-                          padding: '10px 0',
-                          fontWeight: '500',
-                          width: '100%',
-                          marginTop: '10px',
-                        }}
-                      >
-                        {loading ? <Spinner animation="border" size="sm" /> : 'Pay Now'}
-                      </Button>
-                    )}
+                    <Button
+                      onClick={handleCheckout}
+                      disabled={loading}
+                      style={{
+                        backgroundColor: shippingDetails.country === 'India' ? '#3bb143' : '#000',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '0',
+                        padding: '10px 0',
+                        fontWeight: '500',
+                        width: '100%',
+                        marginTop: '10px',
+                      }}
+                    >
+                      {loading ? <Spinner animation="border" size="sm" /> : 'Pay Now'}
+                    </Button>
 
                     {error && (
                       <p style={{ color: '#ff0000', fontSize: '12px', marginTop: '10px' }}>

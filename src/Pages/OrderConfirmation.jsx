@@ -27,7 +27,7 @@ const OrderConfirmation = () => {
               </p>
             )}
             <p style={{ fontSize: '16px', marginBottom: '20px' }}>
-              Payment is pending. Please complete payment to confirm your order.
+              {/* Payment is pending. Please complete payment to confirm your order. */}
             </p>
             <Button
               onClick={() => navigate('/shop')}

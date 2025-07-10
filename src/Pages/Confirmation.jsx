@@ -23,7 +23,7 @@ const Confirmation = () => {
           <h2>🎉 Order Confirmed!</h2>
           <p>Thank you for your purchase. Your DHL shipment is being processed.</p>
 
-          {invoiceUrls.length > 0 ? (
+          {/* {invoiceUrls.length > 0 ? (
             <div>
               <h4 className="mt-4">📄 Download Invoice(s)</h4>
               {invoiceUrls.map((url, index) => (
@@ -39,7 +39,7 @@ const Confirmation = () => {
             </div>
           ) : (
             <p>No invoice available at this time.</p>
-          )}
+          )} */}
 
           <Button
             variant="dark"
