@@ -102,97 +102,99 @@ const Checkout = () => {
     }
   };
 
-  const createOrder = async (transactionId) => {
-    if (cartItems.length === 0) {
-      setError('Your cart is empty.');
-      return;
-    }
-    if (!selectedCourier) {
-      setError('Please select a shipping option.');
-      return;
-    }
-    if (!shippingDetails.name || !shippingDetails.address || !shippingDetails.pincode || !shippingDetails.email || !shippingDetails.phone) {
-      setError('Please complete all shipping details.');
-      return;
-    }
+const createOrder = async (transactionId) => {
+  if (cartItems.length === 0) {
+    setError('Your cart is empty.');
+    return;
+  }
+  if (!selectedCourier) {
+    setError('Please select a shipping option.');
+    return;
+  }
+  if (!shippingDetails.name || !shippingDetails.address || !shippingDetails.pincode || !shippingDetails.email || !shippingDetails.phone) {
+    setError('Please complete all shipping details.');
+    return;
+  }
 
-    const phoneRegex = /^\+?\d{10,12}$/;
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!phoneRegex.test(shippingDetails.phone)) {
-      setError('Invalid phone number (10-12 digits required).');
-      return;
-    }
-    if (!emailRegex.test(shippingDetails.email)) {
-      setError('Invalid email address.');
-      return;
-    }
+  const phoneRegex = /^\+?\d{10,12}$/;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!phoneRegex.test(shippingDetails.phone)) {
+    setError('Invalid phone number (10-12 digits required).');
+    return;
+  }
+  if (!emailRegex.test(shippingDetails.email)) {
+    setError('Invalid email address.');
+    return;
+  }
 
-    setLoading(true);
-    setError(null);
+  setLoading(true);
+  setError(null);
 
-    const { grandTotal } = calculateTotalsINR();
+  const { grandTotal } = calculateTotalsINR();
 
-    const payload = {
-      paypalOrderId: transactionId || `ORDER_${Date.now()}`,
-      order_date: new Date().toISOString().split('T')[0],
-      pickup_location: 'Primary',
-      billing_customer_name: shippingDetails.name.split(' ')[0] || shippingDetails.name,
-      billing_last_name: shippingDetails.name.split(' ')[1] || '',
-      billing_address: shippingDetails.address,
-      billing_city: shippingDetails.city,
-      billing_pincode: shippingDetails.pincode,
-      billing_state: shippingDetails.state,
-      billing_country: shippingDetails.country,
-      billing_email: shippingDetails.email,
-      billing_phone: shippingDetails.phone.replace('+', ''),
-      shipping_is_billing: true,
-      order_items: cartItems.map((item) => {
-        const normalizedItem = normalizeItem(item);
-        return {
-          name: normalizedItem.name,
-          sku: normalizedItem.sku || 'N/A',
-          quantity: normalizedItem.quantity,
-          price: normalizedItem.totalPrice,
-          base_price: normalizedItem.basePrice,
-        };
-      }),
-      payment_method: 'Prepaid',
-      sub_total: grandTotal,
-      shipping_cost: selectedCourier?.rate || 0,
-      terms_and_conditions: termsAndConditions,
-      length: 10,
-      breadth: 10,
-      height: 1,
-      weight: 0.5,
-    };
-
-    try {
-      const response = await axios.post(`${API_BASE_URL}/api/shiprocket/create-shipment`, payload);
-      const { shiprocketOrderId, shipmentId, emailSent } = response.data;
-
-      if (emailSent.customer && emailSent.business) {
-        toast.success('Order created successfully! A confirmation email has been sent to your email address.');
-      } else {
-        toast.warn('Order created successfully, but there was an issue sending one or both confirmation emails.');
-      }
-
-      navigate('/order-confirmation', {
-        state: {
-          shiprocketOrderId,
-          shipmentId,
-        },
-      });
-    } catch (err) {
-      console.error('Order Creation Error:', err.response?.data || err.message);
-      if (err.response?.data?.error?.includes("Shiprocket wallet")) {
-        setError('Unable to process order due to insufficient funds in our shipping account. Please contact support at support@neightivglobal.com.');
-      } else {
-        setError(`Failed to create order: ${err.response?.data?.message || 'Please try again.'}`);
-      }
-    } finally {
-      setLoading(false);
-    }
+  const payload = {
+    paypalOrderId: transactionId || `ORDER_${Date.now()}`,
+    order_date: new Date().toISOString().split('T')[0],
+    pickup_location: 'Primary',
+    billing_customer_name: shippingDetails.name.split(' ')[0] || shippingDetails.name,
+    billing_last_name: shippingDetails.name.split(' ')[1] || '',
+    billing_address: shippingDetails.address,
+    billing_city: shippingDetails.city,
+    billing_pincode: shippingDetails.pincode,
+    billing_state: shippingDetails.state,
+    billing_country: shippingDetails.country,
+    billing_email: shippingDetails.email,
+    billing_phone: shippingDetails.phone.replace('+', ''),
+    shipping_is_billing: true,
+    order_items: cartItems.map((item) => {
+      const normalizedItem = normalizeItem(item);
+      return {
+        name: normalizedItem.name,
+        sku: normalizedItem.sku || 'N/A',
+        quantity: normalizedItem.quantity,
+        price: normalizedItem.totalPrice,
+        base_price: normalizedItem.basePrice,
+      };
+    }),
+    payment_method: 'Prepaid',
+    sub_total: grandTotal,
+    shipping_cost: selectedCourier?.rate || 0,
+    terms_and_conditions: termsAndConditions,
+    length: 10,
+    breadth: 10,
+    height: 1,
+    weight: 0.5,
   };
+
+  try {
+    console.log('Creating order with payload:', payload); // Added logging to check payload
+    const response = await axios.post(`${API_BASE_URL}/api/shiprocket/create-shipment`, payload);
+    const { shiprocketOrderId, shipmentId, emailSent } = response.data;
+
+    if (emailSent.customer && emailSent.business) {
+      toast.success('Order created successfully! A confirmation email has been sent to your email address.');
+    } else {
+      toast.warn('Order created successfully, but there was an issue sending one or both confirmation emails.');
+    }
+
+    navigate('/order-confirmation', {
+      state: {
+        shiprocketOrderId,
+        shipmentId,
+      },
+    });
+  } catch (err) {
+    console.error('Order Creation Error:', err.response?.data || err.message);
+    if (err.response?.data?.error?.includes("Shiprocket wallet")) {
+      setError('Unable to process order due to insufficient funds in our shipping account. Please contact support at support@neightivglobal.com.');
+    } else {
+      setError(`Failed to create order: ${err.response?.data?.message || 'Please try again.'}`);
+    }
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const handleCheckout = async () => {
     if (cartItems.length === 0) {
@@ -225,9 +227,7 @@ const Checkout = () => {
       const amountToCharge = parseFloat((grandTotal + selectedCourier.rate).toFixed(2));
 
       const payload = {
-        // amount: amountToCharge * 100, 
-        amount: 1 * 100, 
-
+        amount: 1 * 100, // Amount in paise (for testing purposes, change this accordingly)
         currency: 'INR',
         customerDetails: {
           name: shippingDetails.name,
@@ -276,14 +276,20 @@ const Checkout = () => {
   useEffect(() => {
     const callback = searchParams.get('callback');
     const transactionId = searchParams.get('transactionId');
+
+    // Check if the callback flag is true and transactionId exists
     if (callback === 'true' && transactionId) {
       setLoading(true);
+
+      // Verify the payment with the transaction ID
       axios
         .get(`${API_BASE_URL}/api/phonepe/verify-payment?transactionId=${transactionId}`)
         .then((response) => {
           if (response.data.success && response.data.paymentStatus === 'completed') {
-            createOrder(transactionId);
+            // If payment is successful, create the order
+            createOrder(transactionId);  // Pass the transactionId to the createOrder function
           } else {
+            // If payment verification failed
             setError('Payment verification failed. Please try again.');
           }
         })
@@ -327,6 +333,7 @@ const Checkout = () => {
                 </div>
               ) : (
                 <Row>
+                  {/* Shipping Details Section */}
                   <Col md={6}>
                     <h3 style={{ fontFamily: 'Lora, serif', color: '#000', fontWeight: '500', fontSize: '24px', marginBottom: '20px' }}>
                       Shipping Details
@@ -451,6 +458,7 @@ const Checkout = () => {
                     )}
                   </Col>
 
+                  {/* Order Summary Section */}
                   <Col md={6}>
                     <h3 style={{ fontFamily: 'Lora, serif', color: '#000', fontWeight: '500', fontSize: '24px', marginBottom: '20px' }}>
                       Order Summary
