@@ -62,6 +62,10 @@ export const CartProvider = ({ children }) => {
     }
   });
 
+  const clearCart = () => {
+    setCartItems([]);
+  };
+
   // Save cartItems to localStorage whenever they change
   useEffect(() => {
     try {
@@ -115,7 +119,7 @@ export const CartProvider = ({ children }) => {
   };
 
   return (
-    <CartContext.Provider value={{ cartItems, addToCart, updateQuantity, removeFromCart }}>
+    <CartContext.Provider value={{ cartItems, addToCart, updateQuantity, removeFromCart, clearCart }}>
       {children}
     </CartContext.Provider>
   );

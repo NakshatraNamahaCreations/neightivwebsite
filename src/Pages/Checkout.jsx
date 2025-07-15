@@ -7,18 +7,19 @@ import 'react-toastify/dist/ReactToastify.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Footer from '../Components/Footer';
 
-// Base API URL for local development
+// Base API URL for development or production
 const API_BASE_URL = 'https://api.neightivglobal.com';
 
 const Checkout = () => {
   const { state } = useLocation();
-  const { cartItems } = state || { cartItems: [] };
+  const { cartItems = [] } = state || {};
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [shippingDetails, setShippingDetails] = useState({
     name: '',
+    lastName: '',
     address: '',
     city: '',
     state: '',
@@ -30,7 +31,7 @@ const Checkout = () => {
   const [shippingOptions, setShippingOptions] = useState([]);
   const [selectedCourier, setSelectedCourier] = useState(null);
 
-  // Terms and Conditions
+  // Terms and Conditions (consider fetching from backend)
   const termsAndConditions = `
     1. All sales are final. Returns are accepted within 7 days of delivery, subject to our return policy.
     2. Products must be returned in original condition with packaging.
@@ -38,9 +39,11 @@ const Checkout = () => {
     4. Delivery timelines are estimates and may vary based on courier availability.
   `;
 
+  // Normalize cart item for consistent pricing
   const normalizeItem = (item) => {
-    const basePrice = item.price || 0;
-    const totalPrice = basePrice;
+    const basePrice = parseFloat(item.price) || 0;
+    const tax = basePrice * 0.12; // 12% tax for simplicity
+    const totalPrice = basePrice + tax;
     return {
       ...item,
       basePrice,
@@ -48,6 +51,7 @@ const Checkout = () => {
     };
   };
 
+  // Calculate totals in INR
   const calculateTotalsINR = () => {
     return cartItems.reduce(
       (totals, item) => {
@@ -61,35 +65,59 @@ const Checkout = () => {
     );
   };
 
+  // Handle shipping details input changes
   const handleShippingChange = (e) => {
     setShippingDetails({ ...shippingDetails, [e.target.name]: e.target.value });
+    setError(null); // Clear error on input change
   };
 
+  // Check courier serviceability
   const checkServiceability = async (e) => {
     e.preventDefault();
-    if (!shippingDetails.pincode || !shippingDetails.name || !shippingDetails.address) {
-      setError('Please complete required fields: Name, Address, PIN Code.');
+    
+    // Validate shipping details input
+    if (!shippingDetails.pincode || !shippingDetails.name || !shippingDetails.lastName || !shippingDetails.address) {
+      setError('Please complete required fields: Name, Last Name, Address, PIN Code.');
+      return;
+    }
+
+    // Directly set the pickup postcode value (this could also be hardcoded or fetched from elsewhere)
+    const pickupPostcode = '560034'; // Replace this with your actual pickup postcode
+    
+    if (!pickupPostcode) {
+      setError('Configuration error: Pickup postcode is not set. Please contact support.');
       return;
     }
 
     try {
       setError(null);
       setLoading(true);
+      
+      // Calculate total weight for all items
+      const totalWeight = cartItems.reduce(
+        (sum, item) => sum + (parseFloat(item.weight) || 0.5) * item.quantity, 
+        0
+      );
+      
+      // Call the Shiprocket API to check serviceability
       const response = await axios.get(`${API_BASE_URL}/api/shiprocket/courier/serviceability`, {
         params: {
-          pickup_postcode: '560034',
+          pickup_postcode: pickupPostcode,
           delivery_postcode: shippingDetails.pincode,
           cod: 0,
-          weight: 0.5,
+          weight: totalWeight || 0.5,
         },
       });
 
       const couriers = response.data?.data?.available_courier_companies || [];
+      
+      // Filter couriers based on the country selection
       const filteredCouriers = shippingDetails.country === 'India'
         ? couriers
-        : couriers.filter((c) => ['FedEx', 'DHL', 'Aramex'].includes(c.courier_name));
+        : couriers.filter((c) => c.is_international);
 
       setShippingOptions(filteredCouriers);
+
       if (filteredCouriers.length === 0) {
         setError('No shipping options available for the provided PIN code.');
       }
@@ -102,16 +130,208 @@ const Checkout = () => {
     }
   };
 
+  // Create order after payment verification
+  // const createOrder = async (transactionId) => {
+  //   try {
+  //     if (cartItems.length === 0) {
+  //       setError('Your cart is empty.');
+  //       return;
+  //     }
+
+  //     if (!selectedCourier) {
+  //       setError('Please select a shipping option.');
+  //       return;
+  //     }
+
+  //     if (!shippingDetails.name || !shippingDetails.lastName || !shippingDetails.address || 
+  //         !shippingDetails.city || !shippingDetails.pincode || !shippingDetails.state || 
+  //         !shippingDetails.email || !shippingDetails.phone) {
+  //       setError('Please complete all shipping details.');
+  //       return;
+  //     }
+
+  //     const { grandTotal } = calculateTotalsINR();
+  //     const normalizedGrandTotal = parseFloat(grandTotal.toFixed(2));
+  //     const shippingRate = parseFloat((selectedCourier?.rate || 0).toFixed(2));
+  //     const totalTax = parseFloat((normalizedGrandTotal * 0.12).toFixed(2));
+  //     const now = new Date();
+  //     const presentDateTime = now.toISOString().split('T')[0] + ' ' + now.toISOString().split('T')[1].substring(0, 5);
+
+  //     const payload = {
+  //       order_id: transactionId || `ORDER_${Date.now()}`,
+  //       order_date: presentDateTime,
+  //       pickup_location: "Primary",
+  //       billing_customer_name: shippingDetails.name,
+  //       billing_last_name: shippingDetails.lastName,
+  //       billing_address: shippingDetails.address,
+  //       billing_city: shippingDetails.city,
+  //       billing_pincode: shippingDetails.pincode,
+  //       billing_state: shippingDetails.state,
+  //       billing_country: shippingDetails.country,
+  //       billing_email: shippingDetails.email,
+  //       billing_phone: shippingDetails.phone,
+  //       shipping_is_billing: true,
+  //       order_items: cartItems.map(item => ({
+  //         name: item.name || "Unknown Product",
+  //         sku: item.sku || `SKU_${Date.now()}`,
+  //         units: item.quantity || 1,
+  //         selling_price: parseFloat(item.price.toFixed(2)),
+  //         tax: 12,
+  //         total_price: parseFloat((item.price * (1 + 0.12)).toFixed(2)),
+  //       })),
+  //       payment_method: "Prepaid",
+  //       shipping_charges: selectedCourier?.rate || 0,
+  //       sub_total: normalizedGrandTotal,
+  //       weight: 0.5,
+  //       length: 10,
+  //       breadth: 10,
+  //       height: 1,
+  //       grand_total: parseFloat((normalizedGrandTotal + selectedCourier?.rate).toFixed(2)),
+  //       tax_breakup: { total_tax: totalTax },
+  //       terms_and_conditions: termsAndConditions
+  //     };
+
+  //     console.log("Order Payload:", JSON.stringify(payload, null, 2));
+
+  //     const response = await axios.post(`https://api.neightivglobal.com/api/shiprocket/create-shipment`, payload);
+  //     const { shiprocketOrderId, shipmentId } = response.data;
+
+  //     toast.success('Order created successfully! A confirmation email has been sent.');
+  //     navigate('/order-confirmation', {
+  //       state: {
+  //         shiprocketOrderId,
+  //         shipmentId,
+  //       },
+  //     });
+  //   } catch (err) {
+  //     console.error('Order Creation Error:', err.response?.data || err.message);
+  //     setError(`Failed to create order: ${err.response?.data?.error || err.response?.data?.message || 'Please try again.'}`);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  // Create order after payment verification
 const createOrder = async (transactionId) => {
+  try {
+    if (cartItems.length === 0) {
+      setError('Your cart is empty.');
+      return;
+    }
+
+    if (!selectedCourier) {
+      setError('Please select a shipping option.');
+      return;
+    }
+
+    if (!shippingDetails.name || !shippingDetails.lastName || !shippingDetails.address || 
+        !shippingDetails.city || !shippingDetails.pincode || !shippingDetails.state || 
+        !shippingDetails.email || !shippingDetails.phone) {
+      setError('Please complete all shipping details.');
+      return;
+    }
+
+    // Step 1: Check stock availability
+    const stockCheckPayload = {
+      items: cartItems.map(item => ({
+        productId: item.id || item._id,
+        quantity: item.quantity || 1,
+      })),
+    };
+
+    setLoading(true);
+    const stockCheckResponse = await axios.post(`${API_BASE_URL}/api/products/check-stock`, stockCheckPayload);
+    
+    if (!stockCheckResponse.data.available) {
+      setError('One or more items are out of stock.');
+      setLoading(false);
+      return;
+    }
+
+    // Step 2: Update stock (reduce stock and increment soldStock)
+    const stockUpdateResponse = await axios.post(`${API_BASE_URL}/api/products/update-stock`, stockCheckPayload);
+    
+    if (stockUpdateResponse.status !== 200) {
+      setError('Failed to update stock. Please try again.');
+      setLoading(false);
+      return;
+    }
+
+    // Step 3: Create the Shiprocket order
+    const { grandTotal } = calculateTotalsINR();
+    const normalizedGrandTotal = parseFloat(grandTotal.toFixed(2));
+    const shippingRate = parseFloat((selectedCourier?.rate || 0).toFixed(2));
+    const totalTax = parseFloat((normalizedGrandTotal * 0.12).toFixed(2));
+    const now = new Date();
+    const presentDateTime = now.toISOString().split('T')[0] + ' ' + now.toISOString().split('T')[1].substring(0, 5);
+
+    const payload = {
+      order_id: transactionId || `ORDER_${Date.now()}`,
+      order_date: presentDateTime,
+      pickup_location: "Primary",
+      billing_customer_name: shippingDetails.name,
+      billing_last_name: shippingDetails.lastName,
+      billing_address: shippingDetails.address,
+      billing_city: shippingDetails.city,
+      billing_pincode: shippingDetails.pincode,
+      billing_state: shippingDetails.state,
+      billing_country: shippingDetails.country,
+      billing_email: shippingDetails.email,
+      billing_phone: shippingDetails.phone,
+      shipping_is_billing: true,
+      order_items: cartItems.map(item => ({
+        name: item.name || "Unknown Product",
+        sku: item.sku || `SKU_${Date.now()}`,
+        units: item.quantity || 1,
+        selling_price: parseFloat(item.price.toFixed(2)),
+        tax: 12,
+        total_price: parseFloat((item.price * (1 + 0.12)).toFixed(2)),
+      })),
+      payment_method: "Prepaid",
+      shipping_charges: shippingRate,
+      sub_total: normalizedGrandTotal,
+      weight: 0.5,
+      length: 10,
+      breadth: 10,
+      height: 1,
+      grand_total: parseFloat((normalizedGrandTotal + shippingRate).toFixed(2)),
+      tax_breakup: { total_tax: totalTax },
+      terms_and_conditions: termsAndConditions,
+    };
+
+    console.log("Order Payload:", JSON.stringify(payload, null, 2));
+
+    const response = await axios.post(`${API_BASE_URL}/api/shiprocket/create-shipment`, payload);
+    const { shiprocketOrderId, shipmentId } = response.data;
+
+    toast.success('Order created successfully! A confirmation email has been sent.');
+    navigate('/order-confirmation', {
+      state: {
+        shiprocketOrderId,
+        shipmentId,
+      },
+    });
+  } catch (err) {
+    console.error('Order Creation Error:', err.response?.data || err.message);
+    setError(`Failed to create order: ${err.response?.data?.error || err.response?.data?.message || 'Please try again.'}`);
+  } finally {
+    setLoading(false);
+  }
+};
+
+  // Handle checkout process
+ const handleCheckout = async () => {
   if (cartItems.length === 0) {
     setError('Your cart is empty.');
     return;
   }
-  if (!selectedCourier) {
-    setError('Please select a shipping option.');
+  if (!selectedCourier || !selectedCourier.rate || selectedCourier.rate <= 0) {
+    setError('Please select a valid shipping option with a rate.');
     return;
   }
-  if (!shippingDetails.name || !shippingDetails.address || !shippingDetails.pincode || !shippingDetails.email || !shippingDetails.phone) {
+  if (!shippingDetails.name || !shippingDetails.lastName || !shippingDetails.address || 
+      !shippingDetails.city || !shippingDetails.state || !shippingDetails.country || 
+      !shippingDetails.pincode || !shippingDetails.phone || !shippingDetails.email) {
     setError('Please complete all shipping details.');
     return;
   }
@@ -127,110 +347,34 @@ const createOrder = async (transactionId) => {
     return;
   }
 
-  setLoading(true);
-  setError(null);
-
-  const { grandTotal } = calculateTotalsINR();
-
-  const payload = {
-    paypalOrderId: transactionId || `ORDER_${Date.now()}`,
-    order_date: new Date().toISOString().split('T')[0],
-    pickup_location: 'Primary',
-    billing_customer_name: shippingDetails.name.split(' ')[0] || shippingDetails.name,
-    billing_last_name: shippingDetails.name.split(' ')[1] || '',
-    billing_address: shippingDetails.address,
-    billing_city: shippingDetails.city,
-    billing_pincode: shippingDetails.pincode,
-    billing_state: shippingDetails.state,
-    billing_country: shippingDetails.country,
-    billing_email: shippingDetails.email,
-    billing_phone: shippingDetails.phone.replace('+', ''),
-    shipping_is_billing: true,
-    order_items: cartItems.map((item) => {
-      const normalizedItem = normalizeItem(item);
-      return {
-        name: normalizedItem.name,
-        sku: normalizedItem.sku || 'N/A',
-        quantity: normalizedItem.quantity,
-        price: normalizedItem.totalPrice,
-        base_price: normalizedItem.basePrice,
-      };
-    }),
-    payment_method: 'Prepaid',
-    sub_total: grandTotal,
-    shipping_cost: selectedCourier?.rate || 0,
-    terms_and_conditions: termsAndConditions,
-    length: 10,
-    breadth: 10,
-    height: 1,
-    weight: 0.5,
+  // Step 1: Check stock availability
+  const stockCheckPayload = {
+    items: cartItems.map(item => ({
+      productId: item.id || item._id,
+      quantity: item.quantity || 1,
+    })),
   };
 
   try {
-    console.log('Creating order with payload:', payload); // Added logging to check payload
-    const response = await axios.post(`${API_BASE_URL}/api/shiprocket/create-shipment`, payload);
-    const { shiprocketOrderId, shipmentId, emailSent } = response.data;
-
-    if (emailSent.customer && emailSent.business) {
-      toast.success('Order created successfully! A confirmation email has been sent to your email address.');
-    } else {
-      toast.warn('Order created successfully, but there was an issue sending one or both confirmation emails.');
-    }
-
-    navigate('/order-confirmation', {
-      state: {
-        shiprocketOrderId,
-        shipmentId,
-      },
-    });
-  } catch (err) {
-    console.error('Order Creation Error:', err.response?.data || err.message);
-    if (err.response?.data?.error?.includes("Shiprocket wallet")) {
-      setError('Unable to process order due to insufficient funds in our shipping account. Please contact support at support@neightivglobal.com.');
-    } else {
-      setError(`Failed to create order: ${err.response?.data?.message || 'Please try again.'}`);
-    }
-  } finally {
-    setLoading(false);
-  }
-};
-
-
-  const handleCheckout = async () => {
-    if (cartItems.length === 0) {
-      setError('Your cart is empty.');
-      return;
-    }
-    if (!selectedCourier || !selectedCourier.rate || selectedCourier.rate <= 0) {
-      setError('Please select a valid shipping option with a rate.');
-      return;
-    }
-    if (!shippingDetails.name || !shippingDetails.address || !shippingDetails.city || !shippingDetails.state || !shippingDetails.country || !shippingDetails.pincode || !shippingDetails.phone || !shippingDetails.email) {
-      setError('Please complete all shipping details.');
-      return;
-    }
-
-    const phoneRegex = /^\+?\d{10,12}$/;
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!phoneRegex.test(shippingDetails.phone)) {
-      setError('Invalid phone number (10-12 digits required).');
-      return;
-    }
-    if (!emailRegex.test(shippingDetails.email)) {
-      setError('Invalid email address.');
+    setLoading(true);
+    setError(null);
+    const stockCheckResponse = await axios.post(`${API_BASE_URL}/api/products/check-stock`, stockCheckPayload);
+    
+    if (!stockCheckResponse.data.available) {
+      setError('One or more items are out of stock.');
+      setLoading(false);
       return;
     }
 
     if (shippingDetails.country === 'India') {
-      // Handle PhonePe payment for India
       const { grandTotal } = calculateTotalsINR();
       const amountToCharge = parseFloat((grandTotal + selectedCourier.rate).toFixed(2));
 
       const payload = {
-        amount: 1 * 100, // Amount in paise (for testing purposes, change this accordingly)
+        amount: amountToCharge * 100,
         currency: 'INR',
         customerDetails: {
-          name: shippingDetails.name,
+          name: `${shippingDetails.name} ${shippingDetails.lastName}`,
           phone: shippingDetails.phone,
           email: shippingDetails.email,
         },
@@ -247,57 +391,47 @@ const createOrder = async (transactionId) => {
         redirectUrl: `${window.location.origin}/order-confirmation?callback=true`,
       };
 
-      console.log('PhonePe checkout payload:', JSON.stringify(payload, null, 2));
-      setLoading(true);
-      setError(null);
+      console.log('PhonePe checkout payload:', payload);
 
-      try {
-        const orderResponse = await axios.post(`${API_BASE_URL}/api/phonepe/initiate-payment`, payload);
-        console.log('PhonePe response:', orderResponse.data);
-
-        const { redirectUrl } = orderResponse.data;
-        if (redirectUrl) {
-          window.location.href = redirectUrl;
-        } else {
-          throw new Error('Payment URL not received.');
-        }
-      } catch (err) {
-        console.error('PhonePe checkout error:', err.response?.data || err.message);
-        setError(`Failed to initiate PhonePe payment: ${err.response?.data?.error || 'Please try again.'}`);
-      } finally {
-        setLoading(false);
+      const orderResponse = await axios.post(`${API_BASE_URL}/api/phonepe/initiate-payment`, payload);
+      const { redirectUrl } = orderResponse.data;
+      
+      if (redirectUrl) {
+        window.location.href = redirectUrl;
+      } else {
+        throw new Error('Payment URL not received.');
       }
     } else {
-      // Directly create order for non-India countries
+      console.log('Creating international order...');
       createOrder();
     }
-  };
+  } catch (err) {
+    console.error('Checkout error:', err.response?.data || err.message);
+    setError(`Failed to proceed: ${err.response?.data?.error || 'Please try again.'}`);
+    setLoading(false);
+  }
+};
 
+  // Handle payment callback
   useEffect(() => {
     const callback = searchParams.get('callback');
     const transactionId = searchParams.get('transactionId');
 
-    // Check if the callback flag is true and transactionId exists
     if (callback === 'true' && transactionId) {
       setLoading(true);
-
-      // Verify the payment with the transaction ID
       axios
         .get(`${API_BASE_URL}/api/phonepe/verify-payment?transactionId=${transactionId}`)
         .then((response) => {
           if (response.data.success && response.data.paymentStatus === 'completed') {
-            // If payment is successful, create the order
-            createOrder(transactionId);  // Pass the transactionId to the createOrder function
+            createOrder(transactionId);
           } else {
-            // If payment verification failed
             setError('Payment verification failed. Please try again.');
+            setLoading(false);
           }
         })
         .catch((err) => {
           console.error('Payment verification error:', err.response?.data || err.message);
           setError('Failed to verify payment. Please try again.');
-        })
-        .finally(() => {
           setLoading(false);
         });
     }
@@ -340,13 +474,25 @@ const createOrder = async (transactionId) => {
                     </h3>
                     <Form onSubmit={checkServiceability}>
                       <Form.Group className="mb-3">
-                        <Form.Label>Full Name *</Form.Label>
+                        <Form.Label>First Name *</Form.Label>
                         <Form.Control
                           type="text"
                           name="name"
                           value={shippingDetails.name}
                           onChange={handleShippingChange}
                           required
+                          isInvalid={error && !shippingDetails.name}
+                        />
+                      </Form.Group>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Last Name *</Form.Label>
+                        <Form.Control
+                          type="text"
+                          name="lastName"
+                          value={shippingDetails.lastName}
+                          onChange={handleShippingChange}
+                          required
+                          isInvalid={error && !shippingDetails.lastName}
                         />
                       </Form.Group>
                       <Form.Group className="mb-3">
@@ -357,6 +503,7 @@ const createOrder = async (transactionId) => {
                           value={shippingDetails.address}
                           onChange={handleShippingChange}
                           required
+                          isInvalid={error && !shippingDetails.address}
                         />
                       </Form.Group>
                       <Form.Group className="mb-3">
@@ -367,6 +514,7 @@ const createOrder = async (transactionId) => {
                           value={shippingDetails.city}
                           onChange={handleShippingChange}
                           required
+                          isInvalid={error && !shippingDetails.city}
                         />
                       </Form.Group>
                       <Form.Group className="mb-3">
@@ -377,6 +525,7 @@ const createOrder = async (transactionId) => {
                           value={shippingDetails.state}
                           onChange={handleShippingChange}
                           required
+                          isInvalid={error && !shippingDetails.state}
                         />
                       </Form.Group>
                       <Form.Group className="mb-3">
@@ -401,6 +550,7 @@ const createOrder = async (transactionId) => {
                           value={shippingDetails.pincode}
                           onChange={handleShippingChange}
                           required
+                          isInvalid={error && !shippingDetails.pincode}
                         />
                       </Form.Group>
                       <Form.Group className="mb-3">
@@ -411,6 +561,7 @@ const createOrder = async (transactionId) => {
                           value={shippingDetails.phone}
                           onChange={handleShippingChange}
                           required
+                          isInvalid={error && !/^\+?\d{10,12}$/.test(shippingDetails.phone)}
                         />
                       </Form.Group>
                       <Form.Group className="mb-3">
@@ -421,6 +572,7 @@ const createOrder = async (transactionId) => {
                           value={shippingDetails.email}
                           onChange={handleShippingChange}
                           required
+                          isInvalid={error && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(shippingDetails.email)}
                         />
                       </Form.Group>
                       <Button
@@ -447,10 +599,11 @@ const createOrder = async (transactionId) => {
                           <div key={option.courier_company_id} style={{ marginBottom: '10px' }}>
                             <Form.Check
                               type="radio"
-                              label={`${option.courier_name} - Rs. ${option.rate} (Est. Delivery: ${option.estimated_delivery_days} days)`}
+                              label={`${option.courier_name} - Rs. ${option.rate} (Est. Delivery: ${option.estimated_delivery_days || 'N/A'} days)`}
                               name="courier"
                               value={option.courier_company_id}
                               onChange={() => setSelectedCourier(option)}
+                              checked={selectedCourier?.courier_company_id === option.courier_company_id}
                             />
                           </div>
                         ))}
@@ -517,7 +670,7 @@ const createOrder = async (transactionId) => {
 
                     <Button
                       onClick={handleCheckout}
-                      disabled={loading}
+                      disabled={loading || !selectedCourier}
                       style={{
                         backgroundColor: shippingDetails.country === 'India' ? '#3bb143' : '#000',
                         color: '#fff',
@@ -529,7 +682,7 @@ const createOrder = async (transactionId) => {
                         marginTop: '10px',
                       }}
                     >
-                      {loading ? <Spinner animation="border" size="sm" /> : 'Pay Now'}
+                      {loading ? <Spinner animation="border" size="sm" /> : shippingDetails.country === 'India' ? 'Pay with PhonePe' : 'Place Order'}
                     </Button>
 
                     {error && (

@@ -316,7 +316,12 @@ const handleCustomClick = () => {
                 <div className="glossy-overlay"></div>
               </div>
               <p className="image-caption">{product.name}</p>
-              <p className="image-price">{currency} {convertPrice(product.amount)}</p>
+              <p className="image-price">
+  {currency} {convertPrice(product.amount * 1.12)} <br />
+
+</p>
+
+              {/* <p className="image-price">{currency} {convertPrice(product.amount)}</p> */}
             </Tilt>
           </Col>
         ))}
@@ -387,7 +392,11 @@ const handleCustomClick = () => {
                     <div className="glossy-overlay"></div>
                   </div>
                   <p className="image-caption">{product.name}</p>
-                  <p className="image-price">{currency} {convertPrice(product.amount)}</p>
+                  {/* <p className="image-price">{currency} {convertPrice(product.amount)}</p> */}
+                    <p className="image-price">
+  {currency} {convertPrice(product.amount * 1.12)} <br />
+
+</p>
                 </div>
               </Carousel.Item>
             ))}

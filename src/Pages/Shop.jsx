@@ -7,7 +7,6 @@ import Footer from '../Components/Footer';
 import { useCurrency } from './CurrencyContext';
 import { useLocation } from 'react-router-dom';
 
-
 const Shop = () => {
   const navigate = useNavigate();
   const { currency, convertPrice } = useCurrency();
@@ -15,17 +14,16 @@ const Shop = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-const location = useLocation();
+  const location = useLocation();
 
-useEffect(() => {
-  const params = new URLSearchParams(location.search);
-  const filterParam = params.get('filter');
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const filterParam = params.get('filter');
 
-  if (filterParam === 'square' || filterParam === 'rectangular') {
-    setFilter(filterParam);
-  }
-}, [location.search]);
-
+    if (filterParam === 'square' || filterParam === 'rectangular') {
+      setFilter(filterParam);
+    }
+  }, [location.search]);
 
   // Fetch products from the backend
   useEffect(() => {
@@ -63,12 +61,16 @@ useEffect(() => {
       ? products
       : products.filter((p) =>
           filter === 'square'
-            ? p.dimension.toLowerCase().includes('square') // Filter for square scarves
-            : p.dimension.toLowerCase().includes('cm') && !p.dimension.toLowerCase().includes('square') // Filter for rectangular scarves
+            ? p.dimension.toLowerCase().includes('square')
+            : p.dimension.toLowerCase().includes('cm') && !p.dimension.toLowerCase().includes('square')
         );
 
-  const handleProductClick = (id) => {
-    navigate(`/product/${id}`);
+  const handleProductClick = (id, stock) => {
+    if (stock > 0) {
+      navigate(`/product/${id}`);
+    } else {
+      console.log('Shop: Cannot navigate, product is out of stock', id);
+    }
   };
 
   if (loading) {
@@ -81,20 +83,17 @@ useEffect(() => {
 
   return (
     <>
-      {/* Hover Styles */}
+      {/* Hover and Out of Stock Styles */}
       <style>
         {`
           .product-card {
             position: relative;
             overflow: hidden;
-              
           }
           .product-image {
             transition: opacity 0.4s ease;
             width: 100%;
-            
             display: block;
-          
           }
           .product-card .hover-image {
             position: absolute;
@@ -111,12 +110,32 @@ useEffect(() => {
           }
           .product-image-rectangular {
             width: 100%;
-            height: auto;  /* Adjusting height for rectangular images */
+            height: auto;
           }
           .product-image-square {
             width: 100%;
-            height: 100%; /* Ensures square image */
+            height: 100%;
             object-fit: cover;
+          }
+          .out-of-stock {
+            filter: blur(3px);
+            opacity: 0.7;
+          }
+          .out-of-stock-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: bold;
+            font-size: 1.2rem;
+            text-align: center;
+            cursor: not-allowed;
           }
         `}
       </style>
@@ -161,49 +180,51 @@ useEffect(() => {
           </Row>
 
           <Row className="px-3">
-            {filteredProducts.map((product) => {
-              const priceWithTax = calculatePriceWithTax(product.amount);
-              const convertedPrice = convertPrice(priceWithTax);
+  {filteredProducts.map((product) => {
+    const priceWithTax = calculatePriceWithTax(product.amount);
+    const convertedPrice = convertPrice(priceWithTax);
 
-              // Apply a conditional class for rectangular scarves based on the product name or dimension
-              const imageClass = product.name.toLowerCase().includes('mare and filly') || product.dimension.toLowerCase().includes('cm') && !product.dimension.toLowerCase().includes('square')
-                ? 'product-image-rectangular'
-                : 'product-image-square';
+    const imageClass =
+      product.name.toLowerCase().includes('mare and filly') ||
+      (product.dimension.toLowerCase().includes('cm') &&
+        !product.dimension.toLowerCase().includes('square'))
+        ? 'product-image-rectangular'
+        : 'product-image-square';
 
-              return (
-                <Col md={4} className="mb-5 text-center" key={product._id}>
-                  <div onClick={() => handleProductClick(product._id)} style={{ cursor: 'pointer', textDecoration: 'none' }}>
-                    <div className="product-card">
-                      <Image
-                        src={`https://api.neightivglobal.com${product.images[0]}`}
-                        alt={product.name}
-                        fluid
-                        className={`product-image ${imageClass}`}
-                      />
-                      {product.images[1] && (
-                        <Image
-                          src={`https://api.neightivglobal.com${product.images[1]}`}
-                          alt={`${product.name} Hover`}
-                          fluid
-                          className="product-image hover-image"
-                        />
-                      )}
-                    </div>
-                    <h5 style={{ marginTop: '15px', fontFamily: 'Lora', color: '#5b3327' }}>
-                      {product.name}
-                    </h5>
-                    {/* <p style={{ fontWeight: '500', color: '#5b3327' }}>
-                      {currency} {Number(convertedPrice).toLocaleString('en', { minimumFractionDigits: 2 })}
-                    </p> */
-                    }
-                    <p style={{ fontWeight: '500', color: '#5b3327' }}>
-  {currency} {Math.floor(Number(convertedPrice)).toLocaleString('en')}
-</p>
-                  </div>
-                </Col>
-              );
-            })}
-          </Row>
+    return (
+      <Col md={4} className="mb-5 text-center" key={product._id}>
+        <div
+          onClick={() => handleProductClick(product._id)}
+          style={{ cursor: 'pointer', textDecoration: 'none' }}
+        >
+          <div className="product-card">
+            <Image
+              src={`https://api.neightivglobal.com${product.images[0]}`}
+              alt={product.name}
+              fluid
+              className={`product-image base-image ${imageClass}`}
+            />
+            {product.images[1] && (
+              <Image
+                src={`https://api.neightivglobal.com${product.images[1]}`}
+                alt={`${product.name} Hover`}
+                fluid
+                className={`product-image hover-image ${imageClass}`}
+              />
+            )}
+          </div>
+          <h5 style={{ marginTop: '15px', fontFamily: 'Lora', color: '#5b3327' }}>
+            {product.name}
+          </h5>
+          <p style={{ fontWeight: '500', color: '#5b3327' }}>
+            {currency} {Math.floor(Number(convertedPrice)).toLocaleString('en')}
+          </p>
+        </div>
+      </Col>
+    );
+  })}
+</Row>
+
         </Container>
       </div>
 
