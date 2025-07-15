@@ -34,6 +34,7 @@ const InternationalCheckout = () => {
     receiverStateCode: '',
     receiverPhone: '',
     receiverCountryCode: '',
+    receiverEmail: '',
   });
 
   const [error, setError] = useState(null);
@@ -156,6 +157,7 @@ const InternationalCheckout = () => {
       'receiverStateCode',
       'receiverPhone',
       'receiverCountryCode',
+      'receiverEmail',
     ];
     for (let field of requiredFields) {
       if (!shippingDetails[field]) {
@@ -169,6 +171,10 @@ const InternationalCheckout = () => {
     }
     if (!countryOptions.some((country) => country.code === shippingDetails.receiverCountryCode)) {
       setError('Please select a valid country from the list.');
+      return false;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(shippingDetails.receiverEmail)) {
+      setError('Please enter a valid email address.');
       return false;
     }
     return true;
@@ -300,7 +306,6 @@ const InternationalCheckout = () => {
 // };
 
 // working done dhl
-
 const handleDHLAndPayPal = async () => {
   if (!validateShippingDetails()) return;
 
@@ -320,6 +325,7 @@ const handleDHLAndPayPal = async () => {
       receiverStateCode: shippingDetails.receiverStateCode,
       receiverPhone: shippingDetails.receiverPhone,
       receiverCountryCode: shippingDetails.receiverCountryCode,
+      receiverEmail: shippingDetails.receiverEmail,
       declaredValue: totalAmount,
       currency: currency,
       weight: shipmentDetails.weight,
@@ -626,6 +632,16 @@ const handleDHLAndPayPal = async () => {
                         <Form.Group className="mb-3">
                           <Form.Label>City *</Form.Label>
                           <Form.Control type="text" name="receiverCity" value={shippingDetails.receiverCity} onChange={handleInputChange} required />
+                        </Form.Group>
+                        <Form.Group className="mb-3">
+                          <Form.Label>Email *</Form.Label>
+                          <Form.Control
+                            type="email"
+                            name="receiverEmail"
+                            value={shippingDetails.receiverEmail}
+                            onChange={handleInputChange}
+                            required
+                          />
                         </Form.Group>
                       </Col>
                       <Col md={6}>

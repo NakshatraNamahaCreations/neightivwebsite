@@ -301,7 +301,7 @@ const createOrder = async (transactionId) => {
 
     console.log("Order Payload:", JSON.stringify(payload, null, 2));
 
-    const response = await axios.post(`${API_BASE_URL}/api/shiprocket/create-shipment`, payload);
+    const response = await axios.post(`https://api.neightivglobal.com/api/shiprocket/create-shipment`, payload);
     const { shiprocketOrderId, shipmentId } = response.data;
 
     toast.success('Order created successfully! A confirmation email has been sent.');
@@ -398,6 +398,7 @@ const createOrder = async (transactionId) => {
       
       if (redirectUrl) {
         window.location.href = redirectUrl;
+              createOrder();
       } else {
         throw new Error('Payment URL not received.');
       }

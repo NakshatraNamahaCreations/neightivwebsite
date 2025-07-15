@@ -19,7 +19,7 @@ const ContactSection = () => {
 
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-    setError(null); // Clear error on input change
+    setError(null); 
   };
 
   const handleSubmit = async (e) => {

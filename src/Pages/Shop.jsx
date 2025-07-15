@@ -65,13 +65,10 @@ const Shop = () => {
             : p.dimension.toLowerCase().includes('cm') && !p.dimension.toLowerCase().includes('square')
         );
 
-  const handleProductClick = (id, stock) => {
-    if (stock > 0) {
-      navigate(`/product/${id}`);
-    } else {
-      console.log('Shop: Cannot navigate, product is out of stock', id);
-    }
-  };
+const handleProductClick = (id) => {
+  navigate(`/product/${id}`);
+};
+
 
   if (loading) {
     return <div>Loading...</div>;
